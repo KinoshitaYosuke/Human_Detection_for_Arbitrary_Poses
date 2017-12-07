@@ -259,3 +259,9 @@ paket-files/
 # Python Tools for Visual Studio (PTVS)
 __pycache__/
 *.pyc
+/Human_Detection_for_Arbitrary_Poses/Human_Detection_for_Arbitrary_Poses/test
+/Human_Detection_for_Arbitrary_Poses/Human_Detection_for_Arbitrary_Poses/result_FD.bmp
+/Human_Detection_for_Arbitrary_Poses/Human_Detection_for_Arbitrary_Poses/result_CD.bmp
+/Human_Detection_for_Arbitrary_Poses/Human_Detection_for_Arbitrary_Poses/result_CD+FD.bmp
+/Human_Detection_for_Arbitrary_Poses/Human_Detection_for_Arbitrary_Poses/max_img.bmp
+/Human_Detection_for_Arbitrary_Poses/Human_Detection_for_Arbitrary_Poses/test_gray.bmp
