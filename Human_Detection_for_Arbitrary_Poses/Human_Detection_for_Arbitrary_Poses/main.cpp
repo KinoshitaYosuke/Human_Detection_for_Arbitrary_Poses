@@ -54,6 +54,30 @@ struct svm_model* FD_24x64;
 //static char *line = NULL;
 static int max_line_len;
 
+class Detect_Place {
+public:
+	int C_x;
+	int C_y;
+	float C_yudo;
+
+	int F_width;
+	int F_height;
+	float F_yudo;
+
+	int territory_num;
+
+	Detect_Place() {
+		C_x = C_y = -1;
+		C_yudo = 0.0;
+
+		F_width = F_height = -1;
+		F_yudo = 0.0;
+
+		territory_num = -1;
+	}
+
+};
+
 void exit_input_error(int line_num)
 {
 	fprintf(stderr, "Wrong input format at line %d\n", line_num);
@@ -260,10 +284,7 @@ void FD_predict(int width, int height, cv::Mat FD_img, svm_model* Detector) {
 		FD_max_ans = ans;
 		FD_max_XY = width * 100 + height;
 		//	cv::imwrite("result_FD.bmp", FD_cut_im);
-		cv::imshow("FD_result", FD_cut_im);
-		cvWaitKey(10);
 	}
-	//	return FD_max_ans;
 }
 
 int main(int argc, char** argv) {
@@ -283,7 +304,9 @@ int main(int argc, char** argv) {
 	cv::Mat ans_img_FD = ans_img_CF.clone();
 	cv::Mat img;			//検出矩形処理を施す画像
 	cvtColor(ans_img_CF, img, CV_RGB2GRAY);
-	cv::imwrite("test_gray.bmp", img);
+	
+	//Detect_Placeオブジェクトの作成
+	Detect_Place detect[100];
 
 	//CoarseDetectorの取り込み
 	if ((CD = svm_load_model("C:/model_file/CD_3.model")) == 0)exit(1);
@@ -323,50 +346,24 @@ int main(int argc, char** argv) {
 		}
 	}
 
-	float CD_max[100];
-	int CD_x[100], CD_y[100];
-	int max_CD_num = 0;
-	cv::Mat CD_img[100];
-
 	//Coarse Detectorによる人物検出
-	for (int y = 0; (y + 64) <= ans_img_CF.rows; y += 4) {
-		for (int x = 0; (x + 64) <= ans_img_CF.cols; x += 4) {
-			//	for (y = 2; (y + 66) <= ans_img_CF.rows; y += 4){
-			//		for (x = 2; (x + 66) <= ans_img_CF.cols; x += 4){
+	cv::Mat CD_img[100];
+	for (int y = 2; (y + 64) <= ans_img_CF.rows; y += 4) {
+		for (int x = 2; (x + 64) <= ans_img_CF.cols; x += 4) {
 			cv::Mat d_im(img, cv::Rect(x, y, 64, 64));		//検出領域のみにする
 			hog_dim = dimension(d_im.cols, d_im.rows);
 			float hog_vector[6562];							//各次元のHOGを格納
 			get_HOG(d_im, hog_vector);	//HOGの取得
 			double ans = predict(hog_vector, hog_dim, CD);	//尤度の算出
 			if (ans >= YUDO_CD) {//尤度から人物か非人物かの判断
-				ans_img_CF = draw_rectangle(ans_img_CF, x, y, 64, 64, 255, 0, 0);
-				ans_img_CD = draw_rectangle(ans_img_CD, x, y, 64, 64, 255, 0, 0);
-				/*		//最大値をとる領域のみを採用する場合----------------------------------------------------------------------------
-				if (yudo_max <= ans){
-				yudo_max = ans;
-				yudo_x = x;
-				yudo_y = y;
-				cv::Mat max_img(ans_img,cv::Rect(x,y,64,64));
-				cv::imwrite("max_img.bmp", max_img);
-				}
-				//-------------------------------------------------------------------------------------------------------------
-				*/
-				//一定以上の尤度を持つ場合全て---------------------------------------------------------------------------------
-				CD_max[count] = ans;
-				CD_x[count] = x;
-				CD_y[count] = y;
-				//	CD_img[count] = d_im.clone();
-				//周辺ピクセル含めてトリミング
+			//	ans_img_CF = draw_rectangle(ans_img_CF, x, y, 64, 64, 255, 0, 0);
+			//	ans_img_CD = draw_rectangle(ans_img_CD, x, y, 64, 64, 255, 0, 0);
+				detect[count].C_yudo = ans;
+				detect[count].C_x = x;
+				detect[count].C_y = y;
 				CD_img[count] = img.clone();
 				CD_img[count] = CD_img[count](cv::Rect(x - 2, y - 2, 68, 68));
-				//				cout << count << ":" << ans << endl;
-				//				cout << x << "," << y << endl;
-				cv::imwrite("max_img.bmp", CD_img[count]);
-				//		cv::imshow("CD result", CD_img[count]);
-				//		cvWaitKey(0);
-
-				//-------------------------------------------------------------------------------------------------------------
-
+				
 				count++;
 
 				detect_flag[y / 4][x / 4] = 1;
@@ -376,12 +373,9 @@ int main(int argc, char** argv) {
 			}
 		}
 	}
-	//	ans_img = draw_rectangle(ans_img, yudo_x, yudo_y, 64, 64, 255, 0, 0);
 
 	timer2 = clock();
 	clog << timer2 - timer1 << "[mmsec]" << endl;
-
-	//	cv::imwrite("result_CD.bmp", ans_img);
 
 	int FD_detect_flag[100];
 	for (int k = 0; k < 100; k++) {
@@ -389,8 +383,6 @@ int main(int argc, char** argv) {
 	}
 
 	for (int i = 0; i < count; i++) {
-		//	cv::Mat FD_img = cv::imread("max_img.bmp",1);
-		//	cv::Mat FD_max = FD_img;
 		float zure_yudo[25];
 		int zure_count = 0;
 		FD_max_ans = 0.0;
@@ -398,10 +390,8 @@ int main(int argc, char** argv) {
 
 		for (int a = -2; a <= 2; a++) {
 			for (int b = -2; b <= 2; b++) {
-
+				
 				cv::Mat FD_img = CD_img[i](cv::Rect(a + 2, b + 2, 64, 64));
-
-				//	cv::Mat FD_img = CD_img[i];
 
 				FD_predict(20, 36, FD_img, FD_20x36);
 				FD_predict(20, 40, FD_img, FD_20x40);
@@ -429,82 +419,69 @@ int main(int argc, char** argv) {
 				FD_predict(20, 64, FD_img, FD_20x64);
 				FD_predict(24, 64, FD_img, FD_24x64);
 
-				//	cout << FD_max_ans << endl;
-				zure_yudo[zure_count] = FD_max_ans;
-				zure_count++;
-				if (FD_max_ans != 0) {
-					//		ans_img_CF = draw_rectangle(ans_img_CF, CD_x[i] + 32 - (FD_max_XY / 100) / 2, CD_y[i] + 32 - (FD_max_XY % 100) / 2, FD_max_XY / 100, FD_max_XY % 100, 0, 255, 0);
-					//		ans_img_FD = draw_rectangle(ans_img_FD, CD_x[i] + 32 - (FD_max_XY / 100) / 2, CD_y[i] + 32 - (FD_max_XY % 100) / 2, FD_max_XY / 100, FD_max_XY % 100, 0, 255, 0);
-					//		ans_img_CF = draw_rectangle(ans_img_CF, a + CD_x[i] + 32 - (FD_max_XY / 100) / 2, b + CD_y[i] + 32 - (FD_max_XY % 100) / 2, FD_max_XY / 100, FD_max_XY % 100, 0, 255, 0);
-					//		ans_img_FD = draw_rectangle(ans_img_FD, a + CD_x[i] + 32 - (FD_max_XY / 100) / 2, b + CD_y[i] + 32 - (FD_max_XY % 100) / 2, FD_max_XY / 100, FD_max_XY % 100, 0, 255, 0);
-					//	cv::imwrite("result_CD+FD.bmp", ans_img);
+				if (FD_max_ans > YUDO_FD && FD_max_ans > detect[i].F_yudo) {
+					detect[i].F_yudo = FD_max_ans;
+					detect[i].F_width = FD_max_XY / 100;
+					detect[i].F_height = FD_max_XY % 100;
+					zure_count = a * 10 + b;
 				}
 			}
 		}
 
 		cout << FD_max_ans << endl;
 
-		float max;
-		int ab = 0;
-		max = zure_yudo[0];
-		for (int z = 0; z < 25; z++) {
-			if (zure_yudo[z] > max) {
-				//		cout << zure_yudo[z] << endl;
-				max = zure_yudo[z];
-				ab = z;
-			}
-		}
-
-		if (max > YUDO_FD) {
-			cout << (int)(ab / 5) - 2 + CD_x[i] + 32 - (FD_max_XY / 100) / 2 << endl;
-			cout << (int)(ab % 5) - 2 + CD_y[i] + 32 - (FD_max_XY % 100) / 2 << endl;
-			cout << FD_max_XY << endl;
-			cout << FD_max_XY << endl;
-			ans_img_CF = draw_rectangle(ans_img_CF, (int)(ab / 5) - 2 + CD_x[i] + 32 - (FD_max_XY / 100) / 2, (int)(ab % 5) - 2 + CD_y[i] + 32 - (FD_max_XY % 100) / 2, FD_max_XY / 100, FD_max_XY % 100, 0, 0, 255);
-			ans_img_FD = draw_rectangle(ans_img_FD, (int)(ab / 5) - 2 + CD_x[i] + 32 - (FD_max_XY / 100) / 2, (int)(ab % 5) - 2 + CD_y[i] + 32 - (FD_max_XY % 100) / 2, FD_max_XY / 100, FD_max_XY % 100, 0, 0, 255);
+		if (zure_count != 0) {
+		//	ans_img_CF = draw_rectangle(ans_img_CF, (int)(zure_count / 10) - 2 + detect[i].C_x + 32 - detect[i].F_width / 2, (int)(zure_count % 10) - 2 + detect[i].C_y + 32 - detect[i].F_height / 2, detect[i].F_width, detect[i].F_height, 0, 0, 255);
+		//	ans_img_FD = draw_rectangle(ans_img_FD, (int)(zure_count / 10) - 2 + detect[i].C_x + 32 - detect[i].F_width / 2, (int)(zure_count % 10) - 2 + detect[i].C_y + 32 - detect[i].F_height / 2, detect[i].F_width, detect[i].F_height, 0, 0, 255);
 			FD_detect_flag[i] = 1;
+
+			detect[i].C_x += (zure_count / 10)-2;
+			detect[i].C_y += (zure_count % 10)-2;
 		}
 	}
 
-	for (int i = 0; i < 30; i++) {
-		cout << FD_detect_flag[i] << "," << endl;
-	}
-
-	int flag_counter = 0;
-	for (int y = 0; detect_flag[y][0] != -1; y++) {
-		for (int x = 0; detect_flag[y][x] != -1; x++) {
-			if (detect_flag[y][x] == 1) {
-				if (FD_detect_flag[flag_counter] == 1) {
-					detect_flag[y][x] = 2;
-				}
-				flag_counter++;
-			}
-			cout << detect_flag[y][x] << ", ";
+	//領域の統一
+	int t_num = 0;
+	for (int n = 0; detect[n].C_yudo != 0; n++) {
+		if (detect[n].F_yudo == 0) continue;
+		if (detect[n].territory_num == -1) {
+			t_num++;
+			detect[n].territory_num = t_num;
 		}
-		cout << endl;
-	}
-
-	for (int y = 2; detect_flag[y][0] != -1; y++) {
-		for (int x = 2; detect_flag[y][x] != -1; x++) {
-			if (detect_flag[y][x] == 2) {
-				if (detect_flag[y - 2][x - 2] == 2) detect_flag[y - 1][x - 1] = 2;
-				else if (detect_flag[y - 2][x] == 2)detect_flag[y - 1][x] = 2;
-				else if (detect_flag[y - 2][x + 2] == 2)detect_flag[y - 1][x + 1] = 2;
-				else if (detect_flag[y][x - 2] == 2)detect_flag[y][x - 1] = 2;
-				else if (detect_flag[y][x + 2] == 2)detect_flag[y][x + 1] = 2;
-				else if (detect_flag[y + 2][x - 2] == 2)detect_flag[y + 1][x - 1] = 2;
-				else if (detect_flag[y + 2][x] == 2)detect_flag[y + 1][x] = 2;
-				else if (detect_flag[y + 2][x + 2] == 2)detect_flag[y + 1][x + 1] = 2;
+		for (int m = n + 1; detect[m].C_yudo != 0; m++) {
+			if (detect[m].F_yudo == 0) continue;
+			if ((detect[n].C_x - 10 <= detect[m].C_x && detect[m].C_x <= detect[n].C_x + 10) &&
+				(detect[n].C_y - 10 <= detect[m].C_y && detect[m].C_y <= detect[n].C_y + 10)) {
+				detect[m].territory_num = detect[n].territory_num;
 			}
 		}
+		
+	}
+	for (int i = 0; detect[i].C_yudo != 0; i++) {
+		if (detect[i].F_yudo == 0) continue;
+		cout << detect[i].territory_num <<":"<<detect[i].F_yudo<< endl;
+	}
+	for (int i = 0; detect[i].C_yudo != 0; i++) {
+		if (detect[i].F_yudo == 0) continue;
+		cout << detect[i].territory_num << ":" << detect[i].C_x << "," <<detect[i].C_y << endl;
 	}
 
-	for (int y = 0; detect_flag[y][0] != -1; y++) {
-		for (int x = 0; detect_flag[y][x] != -1; x++) {
-			cout << detect_flag[y][x] << ", ";
+	//統一領域ごとに検出結果の表示
+	for (int i = 1; i <= t_num; i++) {
+		int final_num = 0;
+		float fyudo = 0;
+		for (int k = 0; detect[k].C_yudo != 0; k++) {
+			if (detect[k].territory_num == i && detect[k].F_yudo > fyudo) {
+				final_num = k;
+				fyudo = detect[k].F_yudo;
+			}
 		}
-		cout << endl;
+		ans_img_CF = draw_rectangle(ans_img_CF, detect[final_num].C_x, detect[final_num].C_y, 64, 64, 255, 0, 0);
+		ans_img_CD = draw_rectangle(ans_img_CD, detect[final_num].C_x, detect[final_num].C_y, 64, 64, 255, 0, 0);
+		ans_img_CF = draw_rectangle(ans_img_CF, detect[final_num].C_x + 32 - detect[final_num].F_width / 2, detect[final_num].C_y + 32 - detect[final_num].F_height / 2, detect[final_num].F_width, detect[final_num].F_height, 0, 0, 255);
+		ans_img_FD = draw_rectangle(ans_img_FD, detect[final_num].C_x + 32 - detect[final_num].F_width / 2, detect[final_num].C_y + 32 - detect[final_num].F_height / 2, detect[final_num].F_width, detect[final_num].F_height, 0, 0, 255);
 	}
+
 
 	cv::imwrite("result_CD+FD.bmp", ans_img_CF);
 	cv::imwrite("result_FD.bmp", ans_img_FD);
