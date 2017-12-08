@@ -9,6 +9,7 @@
 #include <errno.h>
 #include <time.h>
 #include <opencv2/opencv.hpp>
+#include <math.h>
 #include "svm.h"
 
 #define YUDO_CD 0.7
@@ -450,8 +451,8 @@ int main(int argc, char** argv) {
 		}
 		for (int m = n + 1; detect[m].C_yudo != 0; m++) {
 			if (detect[m].F_yudo == 0) continue;
-			if ((detect[n].C_x - 10 <= detect[m].C_x && detect[m].C_x <= detect[n].C_x + 10) &&
-				(detect[n].C_y - 10 <= detect[m].C_y && detect[m].C_y <= detect[n].C_y + 10)) {
+			if ((detect[n].C_x - 10 * sqrt(2) <= detect[m].C_x && detect[m].C_x <= detect[n].C_x + 10 * sqrt(2)) &&
+				(detect[n].C_y - 10 * sqrt(2) <= detect[m].C_y && detect[m].C_y <= detect[n].C_y + 10 * sqrt(2))) {
 				detect[m].territory_num = detect[n].territory_num;
 			}
 		}
