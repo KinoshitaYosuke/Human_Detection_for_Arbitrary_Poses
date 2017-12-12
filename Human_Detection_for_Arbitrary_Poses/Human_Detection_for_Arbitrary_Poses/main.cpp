@@ -22,8 +22,6 @@ int max_nr_attr = 64;
 
 double FD_max_ans = 0.0;
 int FD_max_XY = 0;
-//int CD_max_X = 0;
-//int CD_max_Y = 0;
 
 struct svm_model* CD;
 struct svm_model* FD_20x36;
@@ -269,7 +267,7 @@ int dimension(int x, int y) {
 		return 81 * (x / 6 - 1) * (y / 6 - 1);
 }
 
-void FD_predict(int width, int height, cv::Mat FD_img, svm_model* Detector) {
+void FD_predict(int width, int height, cv::Mat FD_img, svm_model* Detector, float* F_yudo,int *F_width,int *F_height) {
 	cv::Mat FD_cut_im(FD_img, cv::Rect(32 - width / 2, 32 - height / 2, width, height));
 	//	cv::Mat FD_max_img = FD_cut_im;
 	//	cvtColor(FD_cut_im, FD_cut_im, CV_RGB2GRAY);
@@ -285,31 +283,28 @@ void FD_predict(int width, int height, cv::Mat FD_img, svm_model* Detector) {
 		FD_max_ans = ans;
 		FD_max_XY = width * 100 + height;
 		//	cv::imwrite("result_FD.bmp", FD_cut_im);
+		*F_yudo = ans;
+		*F_width = FD_max_XY / 100;
+		*F_height = FD_max_XY % 100;
 	}
 }
 
 int main(int argc, char** argv) {
-	//変数宣言
-	//	int x, y;
+//変数宣言
 	int count = 0;
-	IplImage *im = NULL;
-	time_t timer1, timer2;
-	//	float yudo_max=0.0;
-	//	int yudo_x=0,yudo_y=0;
-	int detect_flag[100][100];
 	int hog_dim;
 
-	//画像の取り込み
+//画像の取り込み
 	cv::Mat ans_img_CF = cv::imread("test/test08.bmp", 1);	//検出する画像
 	cv::Mat ans_img_CD = ans_img_CF.clone();
 	cv::Mat ans_img_FD = ans_img_CF.clone();
 	cv::Mat img;			//検出矩形処理を施す画像
 	cvtColor(ans_img_CF, img, CV_RGB2GRAY);
 	
-	//Detect_Placeオブジェクトの作成
+//Detect_Placeオブジェクトの作成
 	Detect_Place detect[100];
 
-	//CoarseDetectorの取り込み
+//CoarseDetectorの取り込み
 	if ((CD = svm_load_model("C:/model_file/CD_3.model")) == 0)exit(1);
 	if ((FD_20x36 = svm_load_model("C:/model_file/FD_squat_20x36.model")) == 0)exit(1);
 	if ((FD_20x40 = svm_load_model("C:/model_file/FD_squat_20x40.model")) == 0)exit(1);
@@ -337,17 +332,7 @@ int main(int argc, char** argv) {
 	if ((FD_20x64 = svm_load_model("C:/model_file/FD_stand_20x64.model")) == 0)exit(1);
 	if ((FD_24x64 = svm_load_model("C:/model_file/FD_stand_24x64.model")) == 0)exit(1);
 
-	clog << "model load complete" << endl;
-
-	timer1 = clock();
-
-	for (int y = 0; y < 100; y++) {
-		for (int x = 0; x < 100; x++) {
-			detect_flag[y][x] = -1;
-		}
-	}
-
-	//Coarse Detectorによる人物検出
+//Coarse Detectorによる人物検出
 	cv::Mat CD_img[100];
 	for (int y = 2; (y + 64) <= ans_img_CF.rows; y += 4) {
 		for (int x = 2; (x + 64) <= ans_img_CF.cols; x += 4) {
@@ -366,23 +351,11 @@ int main(int argc, char** argv) {
 				CD_img[count] = CD_img[count](cv::Rect(x - 2, y - 2, 68, 68));
 				
 				count++;
-
-				detect_flag[y / 4][x / 4] = 1;
-			}
-			else {
-				detect_flag[y / 4][x / 4] = 0;
 			}
 		}
 	}
 
-	timer2 = clock();
-	clog << timer2 - timer1 << "[mmsec]" << endl;
-
-	int FD_detect_flag[100];
-	for (int k = 0; k < 100; k++) {
-		FD_detect_flag[k] = 0;
-	}
-
+//Fine Detectorによる検出
 	for (int i = 0; i < count; i++) {
 		float zure_yudo[25];
 		int zure_count = 0;
@@ -391,7 +364,6 @@ int main(int argc, char** argv) {
 
 		for (int a = -2; a <= 2; a++) {
 			for (int b = -2; b <= 2; b++) {
-				
 				cv::Mat FD_img = CD_img[i](cv::Rect(a + 2, b + 2, 64, 64));
 
 				FD_predict(20, 36, FD_img, FD_20x36);
@@ -434,14 +406,12 @@ int main(int argc, char** argv) {
 		if (zure_count != 0) {
 		//	ans_img_CF = draw_rectangle(ans_img_CF, (int)(zure_count / 10) - 2 + detect[i].C_x + 32 - detect[i].F_width / 2, (int)(zure_count % 10) - 2 + detect[i].C_y + 32 - detect[i].F_height / 2, detect[i].F_width, detect[i].F_height, 0, 0, 255);
 		//	ans_img_FD = draw_rectangle(ans_img_FD, (int)(zure_count / 10) - 2 + detect[i].C_x + 32 - detect[i].F_width / 2, (int)(zure_count % 10) - 2 + detect[i].C_y + 32 - detect[i].F_height / 2, detect[i].F_width, detect[i].F_height, 0, 0, 255);
-			FD_detect_flag[i] = 1;
-
 			detect[i].C_x += (zure_count / 10)-2;
 			detect[i].C_y += (zure_count % 10)-2;
 		}
 	}
 
-	//領域の統一
+//領域の統一
 	int t_num = 0;
 	for (int n = 0; detect[n].C_yudo != 0; n++) {
 		if (detect[n].F_yudo == 0) continue;
@@ -467,7 +437,7 @@ int main(int argc, char** argv) {
 		cout << detect[i].territory_num << ":" << detect[i].C_x << "," <<detect[i].C_y << endl;
 	}
 
-	//統一領域ごとに検出結果の表示
+//統一領域ごとに検出結果の表示
 	for (int i = 1; i <= t_num; i++) {
 		int final_num = 0;
 		float fyudo = 0;
