@@ -396,11 +396,11 @@ int main(int argc, char** argv) {
 	if ((FD_64x24 = svm_load_model("C:/model_file/FD_64x24.model")) == 0)exit(1);
 
 	//テスト画像ファイル一覧メモ帳読み込み
-	char test_name[1024],result_name[1024];
+	char test_name[1024], result_name[1024];
 	FILE *test_data, *result_data, *result_text;
 	fopen_s(&test_data, "C:/photo/train_data_from_demo/before_normalize/list_origin.txt", "r");
 	fopen_s(&result_data, "C:/photo/train_data_from_demo/result_data/list_result.txt", "r");
-	
+
 
 	while (fgets(test_name, 256, test_data) != NULL && fgets(result_name, 256, result_data) != NULL) {
 		fopen_s(&result_text, "C:/photo/train_data_from_demo/result_data/result_text.txt", "a");
@@ -423,7 +423,7 @@ int main(int argc, char** argv) {
 
 		//画像の取り込み
 		cv::Mat ans_img_CF = cv::imread(new_test_name, 1);	//検出する画像
-		//リザルトファイルに画像ファイル名を書き込み
+															//リザルトファイルに画像ファイル名を書き込み
 		fprintf_s(result_text, new_result_name);
 
 		cout << file_num << ":" << new_test_name << endl;
@@ -598,7 +598,7 @@ int main(int argc, char** argv) {
 			}
 			//矩形表示
 			//CDの矩形
-			ans_img_CF=draw_rectangle(ans_img_CF, 
+			ans_img_CF = draw_rectangle(ans_img_CF,
 				detect[final_num].C_x * 480 / normalize_num[detect[final_num].ratio_num],
 				detect[final_num].C_y * 480 / normalize_num[detect[final_num].ratio_num],
 				64 * 480 / normalize_num[detect[final_num].ratio_num],
@@ -620,7 +620,7 @@ int main(int argc, char** argv) {
 		fprintf_s(result_text, "\n");
 
 		//画像の保存(検出ができていてもいなくても保存)
-		cv::imwrite(new_result_name,ans_img_CF);
+		cv::imwrite(new_result_name, ans_img_CF);
 
 		fclose(result_text);
 	}
