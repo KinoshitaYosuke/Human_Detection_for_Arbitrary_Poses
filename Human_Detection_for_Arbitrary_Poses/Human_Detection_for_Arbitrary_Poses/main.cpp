@@ -401,7 +401,6 @@ int main(int argc, char** argv) {
 	fopen_s(&test_data, "C:/photo/train_data_from_demo/before_normalize/list_origin.txt", "r");
 	fopen_s(&result_data, "C:/photo/train_data_from_demo/result_data/list_result.txt", "r");
 
-
 	while (fgets(test_name, 256, test_data) != NULL && fgets(result_name, 256, result_data) != NULL) {
 		fopen_s(&result_text, "C:/photo/train_data_from_demo/result_data/result_text.txt", "a");
 
@@ -423,7 +422,9 @@ int main(int argc, char** argv) {
 
 		//画像の取り込み
 		cv::Mat ans_img_CF = cv::imread(new_test_name, 1);	//検出する画像
-															//リザルトファイルに画像ファイル名を書き込み
+		cv::Mat res_bin = cv::Mat::zeros(ans_img_CF.rows, ans_img_CF.cols, CV_8UC3);
+		
+		//リザルトファイルに画像ファイル名を書き込み
 		fprintf_s(result_text, new_result_name);
 
 		cout << file_num << ":" << new_test_name << endl;
@@ -434,7 +435,7 @@ int main(int argc, char** argv) {
 
 		//Coarse Detectorによる人物検出
 		cv::Mat CD_img[100];
-
+		
 		float normalize_num[15] = { 68,96,128,160,192,224,-1 };
 
 		for (int img_size = 0; normalize_num[img_size] != -1; img_size++) {
@@ -544,12 +545,6 @@ int main(int argc, char** argv) {
 			if (zure_count != 0) {
 				detect[i].C_x += (zure_count / 10) - 2;
 				detect[i].C_y += (zure_count % 10) - 2;
-				//		ans_img_FD = draw_rectangle(ans_img_FD, detect[i].C_x * 480 / normalize_num[detect[i].ratio_num], detect[i].C_y * 480 / normalize_num[detect[i].ratio_num], 64 * 480 / normalize_num[detect[i].ratio_num], 64 * 480 / normalize_num[detect[i].ratio_num], 255, 0, 0);
-				//		ans_img_FD = draw_rectangle(ans_img_FD,
-				//			(detect[i].C_x + 32 - detect[i].F_width / 2) * 480 / normalize_num[detect[i].ratio_num],
-				//			(detect[i].C_y + 32 - detect[i].F_height / 2) * 480 / normalize_num[detect[i].ratio_num],
-				//			detect[i].F_width * 480 / normalize_num[detect[i].ratio_num],
-				//			detect[i].F_height * 480 / normalize_num[detect[i].ratio_num], 0, 255, 0);
 			}
 		}
 
@@ -575,17 +570,6 @@ int main(int argc, char** argv) {
 			}
 
 		}
-		/*
-		for (int i = 0; detect[i].C_yudo != 0; i++) {
-		if (detect[i].F_yudo == 0) continue;
-		cout << detect[i].territory_num << ":" << detect[i].F_yudo << endl;
-		}
-		for (int i = 0; detect[i].C_yudo != 0; i++) {
-		if (detect[i].F_yudo == 0) continue;
-		cout << (detect[i].C_x + 32) * 480 / normalize_num[detect[i].ratio_num] << endl;
-		cout << (detect[i].C_y + 32) * 480 / normalize_num[detect[i].ratio_num] << endl;
-		}
-		*/
 		//統一領域ごとに検出結果の表示
 		for (int i = 1; i <= t_num; i++) {
 			int final_num = 0;
@@ -596,29 +580,47 @@ int main(int argc, char** argv) {
 					fyudo = detect[k].F_yudo;
 				}
 			}
+			int C_x1 = detect[final_num].C_x * 480 / normalize_num[detect[final_num].ratio_num];
+			int C_y1 = detect[final_num].C_y * 480 / normalize_num[detect[final_num].ratio_num];
+			int C_width = 64 * 480 / normalize_num[detect[final_num].ratio_num];
+			int C_height = 64 * 480 / normalize_num[detect[final_num].ratio_num];
+
+			int F_x1 = (detect[final_num].C_x + 32 - detect[final_num].F_width / 2) * 480 / normalize_num[detect[final_num].ratio_num];
+			int F_y1 = (detect[final_num].C_y + 32 - detect[final_num].F_height / 2) * 480 / normalize_num[detect[final_num].ratio_num];
+			int F_width = detect[final_num].F_width * 480 / normalize_num[detect[final_num].ratio_num];
+			int F_height = detect[final_num].F_height * 480 / normalize_num[detect[final_num].ratio_num];
+
 			//矩形表示
 			//CDの矩形
-			ans_img_CF = draw_rectangle(ans_img_CF,
-				detect[final_num].C_x * 480 / normalize_num[detect[final_num].ratio_num],
-				detect[final_num].C_y * 480 / normalize_num[detect[final_num].ratio_num],
-				64 * 480 / normalize_num[detect[final_num].ratio_num],
-				64 * 480 / normalize_num[detect[final_num].ratio_num], 255, 0, 0);
+			ans_img_CF = draw_rectangle(ans_img_CF, C_x1, C_y1, C_width, C_height, 255, 0, 0);
 			//FDの矩形
-			ans_img_CF = draw_rectangle(ans_img_CF,
-				(detect[final_num].C_x + 32 - detect[final_num].F_width / 2) * 480 / normalize_num[detect[final_num].ratio_num],
-				(detect[final_num].C_y + 32 - detect[final_num].F_height / 2) * 480 / normalize_num[detect[final_num].ratio_num],
-				detect[final_num].F_width * 480 / normalize_num[detect[final_num].ratio_num],
-				detect[final_num].F_height * 480 / normalize_num[detect[final_num].ratio_num], 0, 255, 0);
+			ans_img_CF = draw_rectangle(ans_img_CF,F_x1, F_y1,F_width,F_height, 0, 255, 0);
 			//FD結果をテキストファイルに保存
-			fprintf_s(result_text, " , %.0f, %.0f, %.0f, %.0f",
-				(detect[final_num].C_x + 32 - detect[final_num].F_width / 2) * 480 / normalize_num[detect[final_num].ratio_num],
-				(detect[final_num].C_y + 32 - detect[final_num].F_height / 2) * 480 / normalize_num[detect[final_num].ratio_num],
-				((detect[final_num].C_x + 32 - detect[final_num].F_width / 2) * 480 / normalize_num[detect[final_num].ratio_num]) + (detect[final_num].F_width * 480 / normalize_num[detect[final_num].ratio_num]),
-				((detect[final_num].C_y + 32 - detect[final_num].F_height / 2) * 480 / normalize_num[detect[final_num].ratio_num]) + (detect[final_num].F_height * 480 / normalize_num[detect[final_num].ratio_num]));
+			fprintf_s(result_text, " , %d, %d, %d, %d", F_x1, F_y1, F_x1 + F_width, F_y1 + F_height);
+
+			cout << C_x1 << endl;
+			cout << C_y1 << endl;
+			cout << C_width << endl;
+			cout << F_x1 << endl;
+			cout << F_y1 << endl;
+			cout << F_width << endl;
+			cout << F_height << endl;
+
+//			for (int n = F_y1; n < F_y1 + F_height; n++) {
+//				for (int m = F_x1; m < F_x1 + F_width; m++) {
+			for(int n=165;n<365;n++){
+				for(int m=215;m<335;m++){
+					res_bin.at<cv::Vec3b>(n, m) = cv::Vec3b(255, 255, 255);
+				}
+			}
+
 		}
 		//テキストファイル改行
 		fprintf_s(result_text, "\n");
 
+		cv::cvtColor(res_bin, res_bin, CV_RGB2GRAY);
+		cv::imwrite("res_bin.jpg", res_bin);
+		
 		//画像の保存(検出ができていてもいなくても保存)
 		cv::imwrite(new_result_name, ans_img_CF);
 
@@ -626,7 +628,6 @@ int main(int argc, char** argv) {
 	}
 	fclose(test_data);
 	fclose(result_data);
-
 
 	return 0;
 }
