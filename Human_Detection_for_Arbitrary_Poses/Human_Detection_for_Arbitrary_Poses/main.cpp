@@ -333,76 +333,78 @@ int main(int argc, char** argv) {
 	int hog_dim;
 
 	//CoarseDetectorの取り込み
-	if ((CD = svm_load_model("C:/model_file/CD_from_demo.model")) == 0)exit(1);
+	if ((CD = svm_load_model("C:/model_file/pre_model/CD_pre.model")) == 0)exit(1);
 
-	if ((FD_16x44 = svm_load_model("C:/model_file/FD_16x44.model")) == 0)exit(1);
+	if ((FD_16x44 = svm_load_model("C:/model_file/pre_model/FD_16x44.model")) == 0)exit(1);
 
-	if ((FD_16x48 = svm_load_model("C:/model_file/FD_16x48.model")) == 0)exit(1);
-	if ((FD_16x52 = svm_load_model("C:/model_file/FD_16x52.model")) == 0)exit(1);
-	if ((FD_16x56 = svm_load_model("C:/model_file/FD_16x56.model")) == 0)exit(1);
-	if ((FD_16x60 = svm_load_model("C:/model_file/FD_16x60.model")) == 0)exit(1);
-	if ((FD_16x64 = svm_load_model("C:/model_file/FD_16x64.model")) == 0)exit(1);
+	if ((FD_16x48 = svm_load_model("C:/model_file/pre_model/FD_16x48.model")) == 0)exit(1);
+	if ((FD_16x52 = svm_load_model("C:/model_file/pre_model/FD_16x52.model")) == 0)exit(1);
+	if ((FD_16x56 = svm_load_model("C:/model_file/pre_model/FD_16x56.model")) == 0)exit(1);
+	if ((FD_16x60 = svm_load_model("C:/model_file/pre_model/FD_16x60.model")) == 0)exit(1);
+	if ((FD_16x64 = svm_load_model("C:/model_file/pre_model/FD_16x64.model")) == 0)exit(1);
 
-	if ((FD_20x36 = svm_load_model("C:/model_file/FD_20x36.model")) == 0)exit(1);
-	if ((FD_20x40 = svm_load_model("C:/model_file/FD_20x40.model")) == 0)exit(1);
-	if ((FD_20x56 = svm_load_model("C:/model_file/FD_20x56.model")) == 0)exit(1);
-	if ((FD_20x60 = svm_load_model("C:/model_file/FD_20x60.model")) == 0)exit(1);
-	if ((FD_20x64 = svm_load_model("C:/model_file/FD_20x64.model")) == 0)exit(1);
+	if ((FD_20x36 = svm_load_model("C:/model_file/pre_model/FD_20x36.model")) == 0)exit(1);
+	if ((FD_20x40 = svm_load_model("C:/model_file/pre_model/FD_20x40.model")) == 0)exit(1);
+	if ((FD_20x56 = svm_load_model("C:/model_file/pre_model/FD_20x56.model")) == 0)exit(1);
+	if ((FD_20x60 = svm_load_model("C:/model_file/pre_model/FD_20x60.model")) == 0)exit(1);
+	if ((FD_20x64 = svm_load_model("C:/model_file/pre_model/FD_20x64.model")) == 0)exit(1);
 
-	if ((FD_24x36 = svm_load_model("C:/model_file/FD_24x36.model")) == 0)exit(1);
-	if ((FD_24x40 = svm_load_model("C:/model_file/FD_24x40.model")) == 0)exit(1);
-	if ((FD_24x44 = svm_load_model("C:/model_file/FD_24x44.model")) == 0)exit(1);
-	if ((FD_24x48 = svm_load_model("C:/model_file/FD_24x48.model")) == 0)exit(1);
-	if ((FD_24x64 = svm_load_model("C:/model_file/FD_24x64.model")) == 0)exit(1);
+//	if ((FD_24x36 = svm_load_model("C:/model_file/pre_model/FD_24x36.model")) == 0)exit(1);
+	if ((FD_24x40 = svm_load_model("C:/model_file/pre_model/FD_24x40.model")) == 0)exit(1);
+	if ((FD_24x44 = svm_load_model("C:/model_file/pre_model/FD_24x44.model")) == 0)exit(1);
+	if ((FD_24x48 = svm_load_model("C:/model_file/pre_model/FD_24x48.model")) == 0)exit(1);
+	if ((FD_24x64 = svm_load_model("C:/model_file/pre_model/FD_24x64.model")) == 0)exit(1);
 
-	if ((FD_28x40 = svm_load_model("C:/model_file/FD_28x40.model")) == 0)exit(1);
-	if ((FD_28x44 = svm_load_model("C:/model_file/FD_28x44.model")) == 0)exit(1);
-	if ((FD_28x48 = svm_load_model("C:/model_file/FD_28x48.model")) == 0)exit(1);
-	if ((FD_28x52 = svm_load_model("C:/model_file/FD_28x52.model")) == 0)exit(1);
-	if ((FD_28x56 = svm_load_model("C:/model_file/FD_28x56.model")) == 0)exit(1);
+//	if ((FD_28x40 = svm_load_model("C:/model_file/pre_model/FD_28x40.model")) == 0)exit(1);
+//	if ((FD_28x44 = svm_load_model("C:/model_file/pre_model/FD_28x44.model")) == 0)exit(1);
+	if ((FD_28x48 = svm_load_model("C:/model_file/pre_model/FD_28x48.model")) == 0)exit(1);
+	if ((FD_28x52 = svm_load_model("C:/model_file/pre_model/FD_28x52.model")) == 0)exit(1);
+	if ((FD_28x56 = svm_load_model("C:/model_file/pre_model/FD_28x56.model")) == 0)exit(1);
 
 
-	if ((FD_32x48 = svm_load_model("C:/model_file/FD_32x48.model")) == 0)exit(1);
-	if ((FD_32x52 = svm_load_model("C:/model_file/FD_32x52.model")) == 0)exit(1);
-	if ((FD_32x56 = svm_load_model("C:/model_file/FD_32x56.model")) == 0)exit(1);
-	if ((FD_32x60 = svm_load_model("C:/model_file/FD_32x60.model")) == 0)exit(1);
-	if ((FD_32x64 = svm_load_model("C:/model_file/FD_32x64.model")) == 0)exit(1);
+//	if ((FD_32x48 = svm_load_model("C:/model_file/pre_model/FD_32x48.model")) == 0)exit(1);
+	if ((FD_32x52 = svm_load_model("C:/model_file/pre_model/FD_32x52.model")) == 0)exit(1);
+	if ((FD_32x56 = svm_load_model("C:/model_file/pre_model/FD_32x56.model")) == 0)exit(1);
+	if ((FD_32x60 = svm_load_model("C:/model_file/pre_model/FD_32x60.model")) == 0)exit(1);
+	if ((FD_32x64 = svm_load_model("C:/model_file/pre_model/FD_32x64.model")) == 0)exit(1);
 
-	if ((FD_36x52 = svm_load_model("C:/model_file/FD_36x52.model")) == 0)exit(1);
-	if ((FD_36x56 = svm_load_model("C:/model_file/FD_36x56.model")) == 0)exit(1);
-	if ((FD_36x60 = svm_load_model("C:/model_file/FD_36x60.model")) == 0)exit(1);
-	if ((FD_36x64 = svm_load_model("C:/model_file/FD_36x64.model")) == 0)exit(1);
+//	if ((FD_36x52 = svm_load_model("C:/model_file/pre_model/FD_36x52.model")) == 0)exit(1);
+//	if ((FD_36x56 = svm_load_model("C:/model_file/pre_model/FD_36x56.model")) == 0)exit(1);
+	if ((FD_36x60 = svm_load_model("C:/model_file/pre_model/FD_36x60.model")) == 0)exit(1);
+	if ((FD_36x64 = svm_load_model("C:/model_file/pre_model/FD_36x64.model")) == 0)exit(1);
 
-	if ((FD_40x64 = svm_load_model("C:/model_file/FD_40x64.model")) == 0)exit(1);
-	if ((FD_40x56 = svm_load_model("C:/model_file/FD_40x56.model")) == 0)exit(1);
-	if ((FD_40x60 = svm_load_model("C:/model_file/FD_40x60.model")) == 0)exit(1);
+	if ((FD_40x64 = svm_load_model("C:/model_file/pre_model/FD_40x64.model")) == 0)exit(1);
+//	if ((FD_40x56 = svm_load_model("C:/model_file/pre_model/FD_40x56.model")) == 0)exit(1);
+//	if ((FD_40x60 = svm_load_model("C:/model_file/pre_model/FD_40x60.model")) == 0)exit(1);
 
-	if ((FD_44x16 = svm_load_model("C:/model_file/FD_44x16.model")) == 0)exit(1);
-	if ((FD_44x64 = svm_load_model("C:/model_file/FD_44x64.model")) == 0)exit(1);
+	if ((FD_44x16 = svm_load_model("C:/model_file/pre_model/FD_44x16.model")) == 0)exit(1);
+//	if ((FD_44x64 = svm_load_model("C:/model_file/pre_model/FD_44x64.model")) == 0)exit(1);
 
-	if ((FD_48x16 = svm_load_model("C:/model_file/FD_48x16.model")) == 0)exit(1);
+	if ((FD_48x16 = svm_load_model("C:/model_file/pre_model/FD_48x16.model")) == 0)exit(1);
 
-	if ((FD_52x16 = svm_load_model("C:/model_file/FD_52x16.model")) == 0)exit(1);
-	if ((FD_52x20 = svm_load_model("C:/model_file/FD_52x20.model")) == 0)exit(1);
+	if ((FD_52x16 = svm_load_model("C:/model_file/pre_model/FD_52x16.model")) == 0)exit(1);
+	if ((FD_52x20 = svm_load_model("C:/model_file/pre_model/FD_52x20.model")) == 0)exit(1);
 
-	if ((FD_56x16 = svm_load_model("C:/model_file/FD_56x16.model")) == 0)exit(1);
-	if ((FD_56x20 = svm_load_model("C:/model_file/FD_56x20.model")) == 0)exit(1);
+	if ((FD_56x16 = svm_load_model("C:/model_file/pre_model/FD_56x16.model")) == 0)exit(1);
+	if ((FD_56x20 = svm_load_model("C:/model_file/pre_model/FD_56x20.model")) == 0)exit(1);
 
-	if ((FD_60x16 = svm_load_model("C:/model_file/FD_60x16.model")) == 0)exit(1);
-	if ((FD_60x20 = svm_load_model("C:/model_file/FD_60x20.model")) == 0)exit(1);
+	if ((FD_60x16 = svm_load_model("C:/model_file/pre_model/FD_60x16.model")) == 0)exit(1);
+	if ((FD_60x20 = svm_load_model("C:/model_file/pre_model/FD_60x20.model")) == 0)exit(1);
 
-	if ((FD_64x16 = svm_load_model("C:/model_file/FD_64x16.model")) == 0)exit(1);
-	if ((FD_64x20 = svm_load_model("C:/model_file/FD_64x20.model")) == 0)exit(1);
-	if ((FD_64x24 = svm_load_model("C:/model_file/FD_64x24.model")) == 0)exit(1);
+	if ((FD_64x16 = svm_load_model("C:/model_file/pre_model/FD_64x16.model")) == 0)exit(1);
+	if ((FD_64x20 = svm_load_model("C:/model_file/pre_model/FD_64x20.model")) == 0)exit(1);
+	if ((FD_64x24 = svm_load_model("C:/model_file/pre_model/FD_64x24.model")) == 0)exit(1);
 
 	//テスト画像ファイル一覧メモ帳読み込み
-	char test_name[1024], result_name[1024];
-	FILE *test_data, *result_data, *result_text;
-	fopen_s(&test_data, "C:/photo/train_data_from_demo/before_normalize/list_origin.txt", "r");
-	fopen_s(&result_data, "C:/photo/train_data_from_demo/result_data/list_result.txt", "r");
+	char test_name[1024], result_name[1024], binary_name[1024];
+	FILE *test_data, *result_data, *result_text, *result_binary;
+	fopen_s(&test_data, "C:/photo/train_data_from_demo/pre_experiment_data/test_name.txt", "r");
+	fopen_s(&result_data, "C:/photo/train_data_from_demo/pre_experiment_data/result_name.txt", "r");
+	fopen_s(&result_binary, "C:/photo/train_data_from_demo/pre_experiment_data/result_binary.txt", "r");
 
-	while (fgets(test_name, 256, test_data) != NULL && fgets(result_name, 256, result_data) != NULL) {
-		fopen_s(&result_text, "C:/photo/train_data_from_demo/result_data/result_text.txt", "a");
+
+	while (fgets(test_name, 256, test_data) != NULL && fgets(result_name, 256, result_data) != NULL && fgets(binary_name, 256, result_binary) != NULL) {
+		fopen_s(&result_text, "C:/photo/train_data_from_demo/pre_experiment_data/result_text.txt", "a");
 
 		string name_tes = test_name;
 		char new_test_name[1024];
@@ -418,6 +420,13 @@ int main(int argc, char** argv) {
 			new_result_name[i + 1] = '\0';
 		}
 
+		string name_bin = binary_name;
+		char new_binary_name[1024];
+		for (int i = 0; i < name_bin.length() - 1; i++) {
+			new_binary_name[i] = binary_name[i];
+			new_binary_name[i + 1] = '\0';
+		}
+
 		count = 0;
 
 		//画像の取り込み
@@ -431,10 +440,10 @@ int main(int argc, char** argv) {
 		file_num++;
 
 		//Detect_Placeオブジェクトの作成
-		Detect_Place detect[100];
+		Detect_Place detect[300];
 
 		//Coarse Detectorによる人物検出
-		cv::Mat CD_img[100];
+		cv::Mat CD_img[300];
 		
 		float normalize_num[15] = { 68,96,128,160,192,224,-1 };
 
@@ -488,35 +497,35 @@ int main(int argc, char** argv) {
 					FD_predict(20, 60, FD_img, FD_20x60);
 					FD_predict(20, 64, FD_img, FD_20x64);
 
-					FD_predict(24, 36, FD_img, FD_24x36);
+				//	FD_predict(24, 36, FD_img, FD_24x36);
 					FD_predict(24, 40, FD_img, FD_24x40);
 					FD_predict(24, 44, FD_img, FD_24x44);
 					FD_predict(24, 48, FD_img, FD_24x48);
 					FD_predict(24, 64, FD_img, FD_24x64);
 
-					FD_predict(28, 40, FD_img, FD_28x40);
-					FD_predict(28, 44, FD_img, FD_28x44);
+				//	FD_predict(28, 40, FD_img, FD_28x40);
+				//	FD_predict(28, 44, FD_img, FD_28x44);
 					FD_predict(28, 48, FD_img, FD_28x48);
 					FD_predict(28, 52, FD_img, FD_28x52);
 					FD_predict(28, 56, FD_img, FD_28x56);
 
-					FD_predict(32, 48, FD_img, FD_32x48);
+				//	FD_predict(32, 48, FD_img, FD_32x48);
 					FD_predict(32, 52, FD_img, FD_32x52);
 					FD_predict(32, 56, FD_img, FD_32x56);
 					FD_predict(32, 60, FD_img, FD_32x60);
 					FD_predict(32, 64, FD_img, FD_32x64);
 
-					FD_predict(36, 52, FD_img, FD_36x52);
-					FD_predict(36, 56, FD_img, FD_36x56);
+				//	FD_predict(36, 52, FD_img, FD_36x52);
+				//	FD_predict(36, 56, FD_img, FD_36x56);
 					FD_predict(36, 60, FD_img, FD_36x60);
 					FD_predict(36, 64, FD_img, FD_36x64);
 
-					FD_predict(40, 56, FD_img, FD_40x56);
-					FD_predict(40, 60, FD_img, FD_40x60);
+				//	FD_predict(40, 56, FD_img, FD_40x56);
+				//	FD_predict(40, 60, FD_img, FD_40x60);
 					FD_predict(40, 64, FD_img, FD_40x64);
 
 					FD_predict(44, 16, FD_img, FD_44x16);
-					FD_predict(44, 64, FD_img, FD_44x64);
+				//	FD_predict(44, 64, FD_img, FD_44x64);
 
 					FD_predict(48, 16, FD_img, FD_48x16);
 
@@ -606,10 +615,8 @@ int main(int argc, char** argv) {
 			cout << F_width << endl;
 			cout << F_height << endl;
 
-//			for (int n = F_y1; n < F_y1 + F_height; n++) {
-//				for (int m = F_x1; m < F_x1 + F_width; m++) {
-			for(int n=165;n<365;n++){
-				for(int m=215;m<335;m++){
+			for (int n = F_y1; n < F_y1 + F_height; n++) {
+				for (int m = F_x1; m < F_x1 + F_width; m++) {
 					res_bin.at<cv::Vec3b>(n, m) = cv::Vec3b(255, 255, 255);
 				}
 			}
@@ -619,7 +626,7 @@ int main(int argc, char** argv) {
 		fprintf_s(result_text, "\n");
 
 		cv::cvtColor(res_bin, res_bin, CV_RGB2GRAY);
-		cv::imwrite("res_bin.jpg", res_bin);
+		cv::imwrite(new_binary_name, res_bin);
 		
 		//画像の保存(検出ができていてもいなくても保存)
 		cv::imwrite(new_result_name, ans_img_CF);
@@ -628,6 +635,7 @@ int main(int argc, char** argv) {
 	}
 	fclose(test_data);
 	fclose(result_data);
+	fclose(result_binary);
 
 	return 0;
 }
