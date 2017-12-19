@@ -12,8 +12,8 @@
 #include <math.h>
 #include "svm.h"
 
-#define YUDO_CD 0.7
-#define YUDO_FD 0.9
+#define YUDO_CD 0.9
+#define YUDO_FD 0.99
 
 using namespace std;
 
@@ -430,8 +430,10 @@ int main(int argc, char** argv) {
 		count = 0;
 
 		//画像の取り込み
-		cv::Mat ans_img_CF = cv::imread(new_test_name, 1);	//検出する画像
+//		cv::Mat ans_img_CF = cv::imread(new_test_name, 1);	//検出する画像
+		cv::Mat ans_img_CF = cv::imread("Sun_Nov_26_14_02_00_95.bmp", 1);	//検出する画像
 		cv::Mat res_bin = cv::Mat::zeros(ans_img_CF.rows, ans_img_CF.cols, CV_8UC3);
+		cv::Mat check_img = ans_img_CF.clone();
 		
 		//リザルトファイルに画像ファイル名を書き込み
 		fprintf_s(result_text, new_result_name);
@@ -465,7 +467,16 @@ int main(int argc, char** argv) {
 						detect[count].ratio_num = img_size;
 						CD_img[count] = img.clone();
 						CD_img[count] = CD_img[count](cv::Rect(x - 2, y - 2, 68, 68));
+					//	cv::imshow("a", CD_img[count]);
+					//	cvWaitKey(0);
+						
 						count++;
+						int C_x1 = (detect[count-1].C_x - 2) * 480 / normalize_num[detect[count-1].ratio_num];
+						int C_y1 = (detect[count-1].C_y - 2) * 480 / normalize_num[detect[count-1].ratio_num];
+						int C_width = 68 * 480 / normalize_num[detect[count-1].ratio_num];
+						int C_height = 68 * 480 / normalize_num[detect[count-1].ratio_num];
+						check_img = draw_rectangle(check_img, C_x1, C_y1, C_width, C_height, 255, 0, 0);
+						cout << "(" << C_x1 << "," << C_y1 << "),(" << C_width << "," << C_height << "):" << detect[count - 1].C_yudo << endl;
 					}
 				}
 			}
@@ -552,10 +563,26 @@ int main(int argc, char** argv) {
 			}
 
 			if (zure_count != 0) {
+				int C_x1 = detect[i].C_x * 480 / normalize_num[detect[i].ratio_num];
+				int C_y1 = detect[i].C_y * 480 / normalize_num[detect[i].ratio_num];
+				int C_width = 64 * 480 / normalize_num[detect[i].ratio_num];
+				int C_height = 64 * 480 / normalize_num[detect[i].ratio_num];
+
+				int F_x1 = (detect[i].C_x + 32 - detect[i].F_width / 2) * 480 / normalize_num[detect[i].ratio_num];
+				int F_y1 = (detect[i].C_y + 32 - detect[i].F_height / 2) * 480 / normalize_num[detect[i].ratio_num];
+				int F_width = detect[i].F_width * 480 / normalize_num[detect[i].ratio_num];
+				int F_height = detect[i].F_height * 480 / normalize_num[detect[i].ratio_num];
+
 				detect[i].C_x += (zure_count / 10) - 2;
 				detect[i].C_y += (zure_count % 10) - 2;
+				check_img = draw_rectangle(check_img, C_x1, C_y1, C_width, C_height, 255, 0, 0);
+				check_img = draw_rectangle(check_img, F_x1, F_y1, F_width, F_height, 0, 255, 0);
+				cout << "FD:(" << F_x1 << "," << F_y1 << "),(" << F_width << "," << F_height << "):" << detect[i].F_yudo << endl;;
 			}
 		}
+		cv::imshow("", check_img);
+		
+//		return 0;
 
 		//領域の統一
 		int t_num = 0;
@@ -605,15 +632,15 @@ int main(int argc, char** argv) {
 			//FDの矩形
 			ans_img_CF = draw_rectangle(ans_img_CF,F_x1, F_y1,F_width,F_height, 0, 255, 0);
 			//FD結果をテキストファイルに保存
-			fprintf_s(result_text, " , %d, %d, %d, %d", F_x1, F_y1, F_x1 + F_width, F_y1 + F_height);
+	//		fprintf_s(result_text, " , %d, %d, %d, %d", F_x1, F_y1, F_x1 + F_width, F_y1 + F_height);
 
-			cout << C_x1 << endl;
-			cout << C_y1 << endl;
-			cout << C_width << endl;
-			cout << F_x1 << endl;
-			cout << F_y1 << endl;
-			cout << F_width << endl;
-			cout << F_height << endl;
+	//		cout << C_x1 << endl;
+	//		cout << C_y1 << endl;
+	//		cout << C_width << endl;
+	//		cout << F_x1 << endl;
+	//		cout << F_y1 << endl;
+	//		cout << F_width << endl;
+	//		cout << F_height << endl;
 
 			for (int n = F_y1; n < F_y1 + F_height; n++) {
 				for (int m = F_x1; m < F_x1 + F_width; m++) {
@@ -622,6 +649,11 @@ int main(int argc, char** argv) {
 			}
 
 		}
+
+		cv::imshow("result", ans_img_CF);
+		cvWaitKey(0);
+	//	continue;
+		return 0;
 		//テキストファイル改行
 		fprintf_s(result_text, "\n");
 
