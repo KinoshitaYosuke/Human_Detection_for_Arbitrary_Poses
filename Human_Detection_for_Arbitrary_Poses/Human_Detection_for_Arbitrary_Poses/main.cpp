@@ -13,7 +13,7 @@
 #include "svm.h"
 
 #define YUDO_CD 0.5
-#define YUDO_FD 0.995
+#define YUDO_FD 0.5
 
 using namespace std;
 
@@ -314,18 +314,12 @@ int dimension(int x, int y) {
 
 void FD_predict(int width, int height, cv::Mat FD_img, svm_model* Detector) {
 	cv::Mat FD_cut_im(FD_img, cv::Rect(64 - width / 2, 64 - height / 2, width, height));
-	//	cv::Mat FD_max_img = FD_cut_im;
-	//	cvtColor(FD_cut_im, FD_cut_im, CV_RGB2GRAY);
 	int hog_dim = dimension(FD_cut_im.cols, FD_cut_im.rows);
 	float FD_vector[20000];	//各次元のHOGを格納
 	get_HOG(FD_cut_im, FD_vector);	//HOGの取得
 
 	double ans = predict(FD_vector, hog_dim, Detector);
 
-	//	cout << "x,y:" << width << "," << height << "=" << ans << endl;
-//	cout << "FD:" << ans << endl;
-//	cv::imshow("", FD_cut_im);
-//	cvWaitKey(10);
 	if (FD_max_ans < ans && YUDO_FD < ans) {
 		FD_max_ans = ans;
 		FD_max_XY = width * 1000 + height;
@@ -334,7 +328,7 @@ void FD_predict(int width, int height, cv::Mat FD_img, svm_model* Detector) {
 	}
 }
 
-int main(int argc, char** argv) {
+void detect_1() {
 	//変数宣言
 	//	int x, y;
 
@@ -411,9 +405,9 @@ int main(int argc, char** argv) {
 	//テスト画像ファイル一覧メモ帳読み込み
 	char test_name[1024], result_name[1024];
 	FILE *test_data, *result_data;
-	if (fopen_s(&test_data, "c:/photo/test_list.txt", "r") != 0) {
+	if (fopen_s(&test_data, "c:/photo/test_list_2.txt", "r") != 0) {
 		cout << "missing" << endl;
-		return 0;
+		return ;
 	}
 
 	while (fgets(test_name, 256, test_data) != NULL) {
@@ -443,13 +437,13 @@ int main(int argc, char** argv) {
 
 		if (fopen_s(&result_data, result_path, "a") != 0) {
 			cout << "missing 2" << endl;
-			return 0;
+			return ;
 		}
 		//画像の取り込み
 		cv::Mat ans_img_CF = cv::imread(test_path, 1);	//検出する画像
-//		cv::Mat ans_img_CF = cv::imread("Sun_Nov_26_14_02_00_95.bmp", 1);	//検出する画像
+														//		cv::Mat ans_img_CF = cv::imread("Sun_Nov_26_14_02_00_95.bmp", 1);	//検出する画像
 		cv::Mat check_img = ans_img_CF.clone();
-		
+
 		cv::Mat img;			//検出矩形処理を施す画像
 		cvtColor(ans_img_CF, img, CV_RGB2GRAY);
 
@@ -460,13 +454,13 @@ int main(int argc, char** argv) {
 		Detect_Place detect[500];
 
 		//Coarse Detectorによる人物検出
-	//	cv::Mat CD_img[500];
-		
-		float normalize_num[15] = { 128,192, 256, 320, -1 };
+		//	cv::Mat CD_img[500];
+
+		float normalize_num[15] = { 128, 160,192, 224, 256, 288, 320, -1 };
 
 		for (int img_size = 0; normalize_num[img_size] != -1; img_size++) {
-		//	cv::Mat img;			//検出矩形処理を施す画像
-		//	cvtColor(ans_img_CF, img, CV_RGB2GRAY);
+			//	cv::Mat img;			//検出矩形処理を施す画像
+			//	cvtColor(ans_img_CF, img, CV_RGB2GRAY);
 			cvtColor(ans_img_CF, img, CV_RGB2GRAY);
 			cv::Mat ans_CD = img.clone();
 
@@ -481,7 +475,7 @@ int main(int argc, char** argv) {
 					get_HOG(d_im, hog_vector);	//HOGの取得
 					double ans = predict(hog_vector, hog_dim, CD);	//尤度の算出
 					if (ans >= YUDO_CD) {//尤度から人物か非人物かの判断
-					//	cout << ans << endl;
+										 //	cout << ans << endl;
 
 						detect[count].C_yudo = ans;
 						detect[count].C_x = x; //*480 / normalize_num[img_size];
@@ -489,26 +483,26 @@ int main(int argc, char** argv) {
 						detect[count].C_width = 128 * 480 / normalize_num[img_size];
 						detect[count].C_height = 128 * 480 / normalize_num[img_size];
 						detect[count].ratio_num = img_size;
-					//	if (x >= 2) {
-					//		if ((x + 132) <= img.cols) {
+						//	if (x >= 2) {
+						//		if ((x + 132) <= img.cols) {
 
-					//		}
-							//	CD_img[count] = img(cv::Rect(x - 2, y - 2, 132, 132));
-					//	}
-					//	cv::imshow("", CD_img[count]);
-					//	cvWaitKey(10);
-					//	CD_img[count] = CD_img[count](cv::Rect(x, y, 128, 128));
-						int C_x1 = detect[count].C_x*480 / normalize_num[img_size];
-						int C_y1 = detect[count].C_y*480 / normalize_num[img_size];
+						//		}
+						//	CD_img[count] = img(cv::Rect(x - 2, y - 2, 132, 132));
+						//	}
+						//	cv::imshow("", CD_img[count]);
+						//	cvWaitKey(10);
+						//	CD_img[count] = CD_img[count](cv::Rect(x, y, 128, 128));
+						int C_x1 = detect[count].C_x * 480 / normalize_num[img_size];
+						int C_y1 = detect[count].C_y * 480 / normalize_num[img_size];
 						check_img = draw_rectangle(check_img, C_x1, C_y1, detect[count].C_width, detect[count].C_height, 255, 0, 0);
 						count++;
 					}
 				}
 			}
 		}
-		
-	//	cv::imshow("", check_img);
-	//	cvWaitKey(0);
+
+		//	cv::imshow("", check_img);
+		//	cvWaitKey(0);
 
 		//Fine Detectorによる検出
 		for (int i = 0; i < count; i++) {
@@ -520,19 +514,19 @@ int main(int argc, char** argv) {
 			cvtColor(ans_img_CF, img, CV_RGB2GRAY);
 			cv::resize(img, img, cv::Size(), normalize_num[detect[i].ratio_num] / img.rows, normalize_num[detect[i].ratio_num] / img.rows);
 
-			for (int a = 0; a <= 4; a+=2) {
-				for (int b = 0; b <= 4; b+=2) {
+			for (int a = 0; a <= 4; a += 2) {
+				for (int b = 0; b <= 4; b += 2) {
 					cv::Mat FD_img;
-				//	cv::Mat FD_img = CD_img[i](cv::Rect(a, b, 128, 128));
-				//	if ((detect[i].C_x + (a - 2) * 480 / normalize_num[detect[i].ratio_num]) >= 0 && (detect->C_y + (b - 2) / normalize_num[detect[i].ratio_num]) >= 0 && 
-				//		(detect[i].C_x + (a - 2 + 128) * 480 / normalize_num[detect[i].ratio_num]) <= img.cols && (detect[i].C_y + (b - 2 + 128) * 480 / normalize_num[detect[i].ratio_num]) <= img.rows) {
-					if(detect[i].C_x + a - 2 >= 0 && detect[i].C_y + b - 2 >= 0 && detect[i].C_x + a - 2 + 128 <= img.cols && detect[i].C_y + b - 2 + 128 <= img.rows){
+					//	cv::Mat FD_img = CD_img[i](cv::Rect(a, b, 128, 128));
+					//	if ((detect[i].C_x + (a - 2) * 480 / normalize_num[detect[i].ratio_num]) >= 0 && (detect->C_y + (b - 2) / normalize_num[detect[i].ratio_num]) >= 0 && 
+					//		(detect[i].C_x + (a - 2 + 128) * 480 / normalize_num[detect[i].ratio_num]) <= img.cols && (detect[i].C_y + (b - 2 + 128) * 480 / normalize_num[detect[i].ratio_num]) <= img.rows) {
+					if (detect[i].C_x + a - 2 >= 0 && detect[i].C_y + b - 2 >= 0 && detect[i].C_x + a - 2 + 128 <= img.cols && detect[i].C_y + b - 2 + 128 <= img.rows) {
 						FD_img = img(cv::Rect(detect[i].C_x + a - 2, detect[i].C_y + b - 2, 128, 128));
 					}
 					else {
 						continue;
 					}
-//					cv::Mat FD_img = img(cv::Rect(detect[i].C_x + a - 2, detect[i].C_y + b - 2, 128, 128));
+					//					cv::Mat FD_img = img(cv::Rect(detect[i].C_x + a - 2, detect[i].C_y + b - 2, 128, 128));
 					FD_predict(24, 72, FD_img, FD_24x72);
 					FD_predict(24, 80, FD_img, FD_24x80);
 					FD_predict(24, 88, FD_img, FD_24x88);
@@ -603,8 +597,8 @@ int main(int argc, char** argv) {
 				}
 			}
 
-		//	if (zure_count != 0) {
-				if(FD_max_ans!=0){
+			//	if (zure_count != 0) {
+			if (FD_max_ans != 0) {
 				detect[i].C_x += (zure_count / 10) - 2;
 				detect[i].C_y += (zure_count % 10) - 2;
 
@@ -622,7 +616,7 @@ int main(int argc, char** argv) {
 
 				check_img = draw_rectangle(check_img, detect[i].C_x, detect[i].C_y, detect[i].C_width, detect[i].C_height, 255, 0, 0);
 				check_img = draw_rectangle(check_img, detect[i].F_x, detect[i].F_y, detect[i].F_width, detect[i].F_height, 0, 255, 0);
-				cout << "FD:(" << F_x1 << "," << F_y1 << "),(" << F_width << "," << F_height << "):" << F_width*F_height << ", " << detect[i].F_yudo << endl;;
+				cout << "FD:(" << F_x1 << "," << F_y1 << "),(" << F_width << "," << F_height << "):" << F_width * F_height << ", " << detect[i].F_yudo << endl;;
 			}
 		}
 
@@ -637,11 +631,11 @@ int main(int argc, char** argv) {
 			for (int m = n + 1; detect[m].C_yudo != 0; m++) {
 				if (detect[m].F_yudo == 0) continue;
 
-				if ((detect[n].C_x + detect[n].C_width/2) - 50 <= (detect[m].C_x + detect[m].C_width/2)
-					&& (detect[m].C_x + detect[m].C_width/2) <= (detect[n].C_x + detect[n].C_width/2) + 50
+				if ((detect[n].C_x + detect[n].C_width / 2) - 100 <= (detect[m].C_x + detect[m].C_width / 2)
+					&& (detect[m].C_x + detect[m].C_width / 2) <= (detect[n].C_x + detect[n].C_width / 2) + 100
 					&&
-					(detect[n].C_y + detect[n].C_height/2) - 50 <= (detect[m].C_y + detect[m].C_height/2)
-					&& (detect[m].C_y + detect[m].C_height/2) <= (detect[n].C_y + detect[n].C_height/2) + 50) {
+					(detect[n].C_y + detect[n].C_height / 2) - 100 <= (detect[m].C_y + detect[m].C_height / 2)
+					&& (detect[m].C_y + detect[m].C_height / 2) <= (detect[n].C_y + detect[n].C_height / 2) + 100) {
 
 					detect[m].territory_num = detect[n].territory_num;
 				}
@@ -659,23 +653,23 @@ int main(int argc, char** argv) {
 					final_num = k;
 					fyudo = detect[k].F_yudo;
 				}
-			/*	if (detect[k].territory_num == i) {
-					if ((detect[k].F_width * detect[k].F_height) > area) {
-						final_num = k;
-						fyudo = detect[k].F_yudo;
-						area = detect[k].F_width * detect[k].F_height;
-					}
-					else if ((detect[k].F_width*detect[k].F_height) == area && detect[k].F_yudo > fyudo) {
-						final_num = k;
-						fyudo = detect[k].F_yudo;
-					}
+				/*	if (detect[k].territory_num == i) {
+				if ((detect[k].F_width * detect[k].F_height) > area) {
+				final_num = k;
+				fyudo = detect[k].F_yudo;
+				area = detect[k].F_width * detect[k].F_height;
+				}
+				else if ((detect[k].F_width*detect[k].F_height) == area && detect[k].F_yudo > fyudo) {
+				final_num = k;
+				fyudo = detect[k].F_yudo;
+				}
 				}*/
 			}
 			det_FD[FD_count] = detect[final_num];
 			det_FD[FD_count].territory_num = -1;
 			FD_count++;
 		}
-		
+
 		t_num = 0;
 		for (int n = 0; det_FD[n].C_yudo != 0; n++) {
 			if (det_FD[n].F_yudo == 0) continue;
@@ -686,11 +680,11 @@ int main(int argc, char** argv) {
 			for (int m = n + 1; det_FD[m].C_yudo != 0; m++) {
 				if (det_FD[m].F_yudo == 0) continue;
 
-				if ((det_FD[n].C_x + det_FD[n].C_width / 2) - 50 <= (det_FD[m].C_x + det_FD[m].C_width / 2)
-					&& (det_FD[m].C_x + det_FD[m].C_width / 2) <= (det_FD[n].C_x + det_FD[n].C_width / 2) + 50
+				if ((det_FD[n].C_x + det_FD[n].C_width / 2) - 100 <= (det_FD[m].C_x + det_FD[m].C_width / 2)
+					&& (det_FD[m].C_x + det_FD[m].C_width / 2) <= (det_FD[n].C_x + det_FD[n].C_width / 2) + 100
 					&&
-					(det_FD[n].C_y + det_FD[n].C_height / 2) - 50 <= (det_FD[m].C_y + det_FD[m].C_height / 2)
-					&& (det_FD[m].C_y + det_FD[m].C_height / 2) <= (det_FD[n].C_y + det_FD[n].C_height / 2) + 50) {
+					(det_FD[n].C_y + det_FD[n].C_height / 2) - 100 <= (det_FD[m].C_y + det_FD[m].C_height / 2)
+					&& (det_FD[m].C_y + det_FD[m].C_height / 2) <= (det_FD[n].C_y + det_FD[n].C_height / 2) + 100) {
 
 					det_FD[m].territory_num = det_FD[n].territory_num;
 				}
@@ -709,18 +703,18 @@ int main(int argc, char** argv) {
 				}
 				/*
 				if (det_FD[k].territory_num == i) {
-					if ((det_FD[k].F_width * det_FD[k].F_height) > area) {
-						final_num = k;
-						fyudo = det_FD[k].F_yudo;
-						area = det_FD[k].F_width * det_FD[k].F_height;
-					}
-					else if ((det_FD[k].F_width*det_FD[k].F_height) == area && det_FD[k].F_yudo > fyudo) {
-						final_num = k;
-						fyudo = det_FD[k].F_yudo;
-					}
+				if ((det_FD[k].F_width * det_FD[k].F_height) > area) {
+				final_num = k;
+				fyudo = det_FD[k].F_yudo;
+				area = det_FD[k].F_width * det_FD[k].F_height;
+				}
+				else if ((det_FD[k].F_width*det_FD[k].F_height) == area && det_FD[k].F_yudo > fyudo) {
+				final_num = k;
+				fyudo = det_FD[k].F_yudo;
+				}
 				}
 				*/
-				
+
 			}
 
 			//矩形表示
@@ -749,15 +743,293 @@ int main(int argc, char** argv) {
 
 			printf("%f, %d, %d, %d, %d\n", det_FD[final_num].F_yudo, det_FD[final_num].F_x, det_FD[final_num].F_y, det_FD[final_num].F_width, det_FD[final_num].F_height);
 
-		//	ans_img_CF = draw_rectangle(ans_img_CF, det_FD[final_num].C_x, det_FD[final_num].C_y, det_FD[final_num].C_width, det_FD[final_num].C_height, 255, 0, 0);
-		//	ans_img_CF = draw_rectangle(ans_img_CF, det_FD[final_num].F_x, det_FD[final_num].F_y, det_FD[final_num].F_width, det_FD[final_num].F_height, 0, 255, 0);
+			//	ans_img_CF = draw_rectangle(ans_img_CF, det_FD[final_num].C_x, det_FD[final_num].C_y, det_FD[final_num].C_width, det_FD[final_num].C_height, 255, 0, 0);
+			//	ans_img_CF = draw_rectangle(ans_img_CF, det_FD[final_num].F_x, det_FD[final_num].F_y, det_FD[final_num].F_width, det_FD[final_num].F_height, 0, 255, 0);
 
 		}
-//		imshow("", ans_img_CF);
-//		cvWaitKey(0);
+		//		imshow("", ans_img_CF);
+		//		cvWaitKey(0);
 		fclose(result_data);
 	}
 	fclose(test_data);
+
+}
+
+void detect_2() {
+	//変数宣言
+	//	int x, y;
+
+	int file_num = 1;
+
+	int count = 0;
+	int hog_dim;
+
+	//CoarseDetectorの取り込み
+//	if ((CD = svm_load_model("C:/model_file/pre_model/CD_123.model")) == 0)exit(1);
+
+	if ((FD_24x72 = svm_load_model("C:/model_file/pre_model/FD_24x72.model")) == 0)exit(1);
+	if ((FD_24x80 = svm_load_model("C:/model_file/pre_model/FD_24x80.model")) == 0)exit(1);
+	if ((FD_24x88 = svm_load_model("C:/model_file/pre_model/FD_24x88.model")) == 0)exit(1);
+
+	if ((FD_32x88 = svm_load_model("C:/model_file/pre_model/FD_32x88.model")) == 0)exit(1);
+	if ((FD_32x96 = svm_load_model("C:/model_file/pre_model/FD_32x96.model")) == 0)exit(1);
+	if ((FD_32x104 = svm_load_model("C:/model_file/pre_model/FD_32x104.model")) == 0)exit(1);
+	if ((FD_32x112 = svm_load_model("C:/model_file/pre_model/FD_32x112.model")) == 0)exit(1);
+	if ((FD_32x120 = svm_load_model("C:/model_file/pre_model/FD_32x120.model")) == 0)exit(1);
+
+	if ((FD_40x72 = svm_load_model("C:/model_file/pre_model/FD_40x72.model")) == 0)exit(1);
+	if ((FD_40x80 = svm_load_model("C:/model_file/pre_model/FD_40x80.model")) == 0)exit(1);
+	if ((FD_40x112 = svm_load_model("C:/model_file/pre_model/FD_40x112.model")) == 0)exit(1);
+	if ((FD_40x120 = svm_load_model("C:/model_file/pre_model/FD_40x120.model")) == 0)exit(1);
+	if ((FD_40x128 = svm_load_model("C:/model_file/pre_model/FD_40x128.model")) == 0)exit(1);
+
+	if ((FD_48x80 = svm_load_model("C:/model_file/pre_model/FD_48x80.model")) == 0)exit(1);
+	if ((FD_48x88 = svm_load_model("C:/model_file/pre_model/FD_48x88.model")) == 0)exit(1);
+	if ((FD_48x96 = svm_load_model("C:/model_file/pre_model/FD_48x96.model")) == 0)exit(1);
+	if ((FD_48x128 = svm_load_model("C:/model_file/pre_model/FD_48x128.model")) == 0)exit(1);
+
+	if ((FD_56x96 = svm_load_model("C:/model_file/pre_model/FD_56x96.model")) == 0)exit(1);
+	if ((FD_56x104 = svm_load_model("C:/model_file/pre_model/FD_56x104.model")) == 0)exit(1);
+	if ((FD_56x112 = svm_load_model("C:/model_file/pre_model/FD_56x112.model")) == 0)exit(1);
+
+	if ((FD_64x104 = svm_load_model("C:/model_file/pre_model/FD_64x104.model")) == 0)exit(1);
+	if ((FD_64x112 = svm_load_model("C:/model_file/pre_model/FD_64x112.model")) == 0)exit(1);
+	if ((FD_64x120 = svm_load_model("C:/model_file/pre_model/FD_64x120.model")) == 0)exit(1);
+	if ((FD_64x128 = svm_load_model("C:/model_file/pre_model/FD_64x128.model")) == 0)exit(1);
+
+	if ((FD_72x16 = svm_load_model("C:/model_file/pre_model/FD_72x16.model")) == 0)exit(1);
+	if ((FD_72x120 = svm_load_model("C:/model_file/pre_model/FD_72x120.model")) == 0)exit(1);
+	if ((FD_72x128 = svm_load_model("C:/model_file/pre_model/FD_72x128.model")) == 0)exit(1);
+
+	if ((FD_80x16 = svm_load_model("C:/model_file/pre_model/FD_80x16.model")) == 0)exit(1);
+	if ((FD_80x24 = svm_load_model("C:/model_file/pre_model/FD_80x24.model")) == 0)exit(1);
+	if ((FD_80x128 = svm_load_model("C:/model_file/pre_model/FD_80x128.model")) == 0)exit(1);
+
+	if ((FD_88x24 = svm_load_model("C:/model_file/pre_model/FD_88x24.model")) == 0)exit(1);
+	if ((FD_88x32 = svm_load_model("C:/model_file/pre_model/FD_88x32.model")) == 0)exit(1);
+
+	if ((FD_96x24 = svm_load_model("C:/model_file/pre_model/FD_96x24.model")) == 0)exit(1);
+	if ((FD_96x32 = svm_load_model("C:/model_file/pre_model/FD_96x32.model")) == 0)exit(1);
+
+	if ((FD_104x24 = svm_load_model("C:/model_file/pre_model/FD_104x24.model")) == 0)exit(1);
+	if ((FD_104x32 = svm_load_model("C:/model_file/pre_model/FD_104x32.model")) == 0)exit(1);
+	if ((FD_104x40 = svm_load_model("C:/model_file/pre_model/FD_104x40.model")) == 0)exit(1);
+
+	if ((FD_112x24 = svm_load_model("C:/model_file/pre_model/FD_112x24.model")) == 0)exit(1);
+	if ((FD_112x32 = svm_load_model("C:/model_file/pre_model/FD_112x32.model")) == 0)exit(1);
+	if ((FD_112x40 = svm_load_model("C:/model_file/pre_model/FD_112x40.model")) == 0)exit(1);
+
+	if ((FD_120x24 = svm_load_model("C:/model_file/pre_model/FD_120x24.model")) == 0)exit(1);
+	if ((FD_120x32 = svm_load_model("C:/model_file/pre_model/FD_120x32.model")) == 0)exit(1);
+	if ((FD_120x40 = svm_load_model("C:/model_file/pre_model/FD_120x40.model")) == 0)exit(1);
+
+	if ((FD_128x32 = svm_load_model("C:/model_file/pre_model/FD_128x32.model")) == 0)exit(1);
+	if ((FD_128x40 = svm_load_model("C:/model_file/pre_model/FD_128x40.model")) == 0)exit(1);
+	if ((FD_128x48 = svm_load_model("C:/model_file/pre_model/FD_128x48.model")) == 0)exit(1);
+
+
+
+	//テスト画像ファイル一覧メモ帳読み込み
+	char test_name[1024], result_name[1024];
+	FILE *test_data, *result_data;
+	if (fopen_s(&test_data, "c:/photo/test_list_2.txt", "r") != 0) {
+		cout << "missing" << endl;
+		return;
+	}
+
+	while (fgets(test_name, 256, test_data) != NULL) {
+		string name_tes = test_name;
+		char new_test_name[1024];
+		for (int i = 0; i < name_tes.length() - 1; i++) {
+			new_test_name[i] = test_name[i];
+			new_test_name[i + 1] = '\0';
+		}
+		count = 0;
+
+		char test_path[1024] = "C:/photo/test_data_from_demo/test_data/";
+		strcat_s(test_path, new_test_name);
+
+		for (int i = 0; i < 1024; i++) {
+			if (new_test_name[i] == 'b') {
+				new_test_name[i] = 't';
+				new_test_name[i + 1] = 'x';
+				new_test_name[i + 2] = 't';
+				new_test_name[i + 3] = '\0';
+				break;
+			}
+			else new_test_name[i] = new_test_name[i];
+		}
+		char result_path[1024] = "result_data/";
+		strcat_s(result_path, new_test_name);
+
+		if (fopen_s(&result_data, result_path, "w") != 0) {
+			cout << "missing 2" << endl;
+			return;
+		}
+		//画像の取り込み
+		cv::Mat ans_img_CF = cv::imread(test_path, 1);	//検出する画像
+		cv::Mat check_img = ans_img_CF.clone();
+
+		cv::Mat img;			//検出矩形処理を施す画像
+		cvtColor(ans_img_CF, img, CV_RGB2GRAY);
+
+		cout << file_num << ":" << new_test_name << endl;
+		file_num++;
+
+		//Detect_Placeオブジェクトの作成
+		
+
+		FILE *CD_data;
+		char CD_path[1024] = "C:/photo/result_data_from_demo/2018_01_13_OOP/result_data/";
+		strcat_s(CD_path, new_test_name);
+		cout << CD_path << endl;
+		if (fopen_s(&CD_data, CD_path, "r") != 0) {
+			cout << "not found CD result" << endl;
+			return;
+		}
+
+		char tmp[5][1024];
+		//CD検出結果の取り込み
+		while (fgets(tmp[0], 256, CD_data) != NULL) {
+			fgets(tmp[1], 256, CD_data);
+			fgets(tmp[2], 256, CD_data);
+			fgets(tmp[3], 256, CD_data);
+			fgets(tmp[4], 256, CD_data);
+
+			Detect_Place detect;
+
+			detect.C_yudo = atof(tmp[0]);
+			detect.C_x = atoi(tmp[1]);
+			detect.C_y = atoi(tmp[2]);
+			detect.C_width = atoi(tmp[3]);
+			detect.C_height = atoi(tmp[4]);
+
+			//Fine Detectorによる検出
+			FD_max_ans = 0.0;
+			FD_max_XY = 0;
+
+			cv::Mat FD_img = img(cv::Rect(detect.C_x, detect.C_y, detect.C_width, detect.C_height));
+
+			cv::resize(FD_img, FD_img, cv::Size(), 128.0 / FD_img.cols, 128.0 / FD_img.rows);
+
+			FD_predict(24, 72, FD_img, FD_24x72);
+			FD_predict(24, 80, FD_img, FD_24x80);
+			FD_predict(24, 88, FD_img, FD_24x88);
+
+			FD_predict(32, 88, FD_img, FD_32x88);
+			FD_predict(32, 96, FD_img, FD_32x96);
+			FD_predict(32, 104, FD_img, FD_32x104);
+			FD_predict(32, 112, FD_img, FD_32x112);
+			FD_predict(32, 120, FD_img, FD_32x120);
+
+			FD_predict(40, 72, FD_img, FD_40x72);
+			FD_predict(40, 80, FD_img, FD_40x80);
+			FD_predict(40, 112, FD_img, FD_40x112);
+			FD_predict(40, 120, FD_img, FD_40x120);
+			FD_predict(40, 128, FD_img, FD_40x128);
+
+			FD_predict(48, 80, FD_img, FD_48x80);
+			FD_predict(48, 88, FD_img, FD_48x88);
+			FD_predict(48, 96, FD_img, FD_48x96);
+			FD_predict(48, 128, FD_img, FD_48x128);
+
+			FD_predict(56, 96, FD_img, FD_56x96);
+			FD_predict(56, 104, FD_img, FD_56x104);
+			FD_predict(56, 112, FD_img, FD_56x112);
+
+			FD_predict(64, 104, FD_img, FD_64x104);
+			FD_predict(64, 112, FD_img, FD_64x112);
+			FD_predict(64, 120, FD_img, FD_64x120);
+			FD_predict(64, 128, FD_img, FD_64x128);
+
+			FD_predict(72, 16, FD_img, FD_72x16);
+			FD_predict(72, 120, FD_img, FD_72x120);
+			FD_predict(72, 128, FD_img, FD_72x128);
+
+			FD_predict(80, 16, FD_img, FD_80x16);
+			FD_predict(80, 24, FD_img, FD_80x24);
+			FD_predict(80, 128, FD_img, FD_80x128);
+
+			FD_predict(88, 24, FD_img, FD_88x24);
+			FD_predict(88, 32, FD_img, FD_88x32);
+
+			FD_predict(96, 24, FD_img, FD_96x24);
+			FD_predict(96, 32, FD_img, FD_96x32);
+
+			FD_predict(104, 24, FD_img, FD_104x24);
+			FD_predict(104, 32, FD_img, FD_104x32);
+			FD_predict(104, 40, FD_img, FD_104x40);
+
+			FD_predict(112, 24, FD_img, FD_112x24);
+			FD_predict(112, 32, FD_img, FD_112x32);
+			FD_predict(112, 40, FD_img, FD_112x40);
+
+			FD_predict(120, 24, FD_img, FD_120x24);
+			FD_predict(120, 32, FD_img, FD_120x32);
+			FD_predict(120, 40, FD_img, FD_120x40);
+
+			FD_predict(128, 32, FD_img, FD_128x32);
+			FD_predict(128, 40, FD_img, FD_128x40);
+			FD_predict(128, 48, FD_img, FD_128x48);
+
+
+			if (FD_max_ans != 0) {
+				int F_x1 = (detect.C_x + (float)detect.C_width / 2) - (((float)detect.C_width / 128) * (FD_max_XY / 2000));
+				int F_y1 = (detect.C_y + (float)detect.C_height / 2) - (((float)detect.C_height / 128) * (FD_max_XY % 1000 / 2));
+				int F_width = ((float)detect.C_width / 128)*(FD_max_XY / 1000);
+				int F_height = ((float)detect.C_height / 128)*(FD_max_XY % 1000);
+
+				detect.F_yudo = FD_max_ans;
+				detect.F_x = F_x1;
+				detect.F_y = F_y1;
+				detect.F_width = F_width;
+				detect.F_height = F_height;
+
+
+
+				fprintf_s(result_data, "%f", detect.C_yudo);
+				fprintf_s(result_data, "\n");
+				fprintf_s(result_data, "%d", detect.C_x);
+				fprintf_s(result_data, "\n");
+				fprintf_s(result_data, "%d", detect.C_y);
+				fprintf_s(result_data, "\n");
+				fprintf_s(result_data, "%d", detect.C_width);
+				fprintf_s(result_data, "\n");
+				fprintf_s(result_data, "%d", detect.C_height);
+				fprintf_s(result_data, "\n");
+
+				fprintf_s(result_data, "%f", detect.F_yudo);
+				fprintf_s(result_data, "\n");
+				fprintf_s(result_data, "%d", detect.F_x);
+				fprintf_s(result_data, "\n");
+				fprintf_s(result_data, "%d", detect.F_y);
+				fprintf_s(result_data, "\n");
+				fprintf_s(result_data, "%d", detect.F_width);
+				fprintf_s(result_data, "\n");
+				fprintf_s(result_data, "%d", detect.F_height);
+				fprintf_s(result_data, "\n");
+			}
+			//		cout << FD_max_ans << endl;
+			//		printf("%f, %d, %d, %d, %d\n", detect.F_yudo, detect.F_x, detect.F_y, detect.F_width, detect.F_height);
+
+			//	ans_img_CF = draw_rectangle(ans_img_CF, detect.C_x, detect.C_y, detect.C_width, detect.C_height, 255, 0, 0);
+			//	ans_img_CF = draw_rectangle(ans_img_CF, detect.F_x, detect.F_y, detect.F_width, detect.F_height, 0, 255, 0);
+			//	cv::imshow("", ans_img_CF);
+			//	cvWaitKey(0);
+
+		}
+		fclose(CD_data);
+//		cv::imshow("", ans_img_CF);
+//		cvWaitKey(0);
+	}
+	count++;
+	
+	fclose(test_data);
+}
+
+int main(int argc, char** argv) {
+	
+	detect_2();
 
 	return 0;
 }
