@@ -1100,7 +1100,7 @@ void ROC_data() {
 	//テスト画像ファイル一覧メモ帳読み込み
 	char test_name[1024], result_name[1024];
 	FILE *test_data, *result_data;
-	if (fopen_s(&test_data, "c:/photo/test_list_2.txt", "r") != 0) {
+	if (fopen_s(&test_data, "predict-list.txt", "r") != 0) {
 		cout << "missing" << endl;
 		return;
 	}
@@ -1113,7 +1113,7 @@ void ROC_data() {
 			new_test_name[i + 1] = '\0';
 		}
 
-		char test_path[1024] = "C:/photo/test_data_from_demo/predict/";
+		char test_path[1024] = "C:/photo/test_data_from_demo/predict_data/";
 		strcat_s(test_path, new_test_name);
 
 		for (int i = 0; i < 1024; i++) {
@@ -1129,7 +1129,7 @@ void ROC_data() {
 		char result_path[1024] = "result_data/";
 		strcat_s(result_path, new_test_name);
 
-		if (fopen_s(&result_data, result_path, "a") != 0) {
+		if (fopen_s(&result_data, result_path, "w") != 0) {
 			cout << "missing 2" << endl;
 			return;
 		}
@@ -1146,7 +1146,7 @@ void ROC_data() {
 		Detect_Place detect;
 
 		hog_dim = dimension(img.cols, img.rows);
-		float hog_vector[30000];						//各次元のHOGを格納
+		float hog_vector[50000];						//各次元のHOGを格納
 		get_HOG(img, hog_vector);	//HOGの取得
 		double ans = predict(hog_vector, hog_dim, CD);	//尤度の算出
 
@@ -1220,8 +1220,8 @@ void ROC_data() {
 		detect.F_yudo = FD_max_ans;
 		detect.F_x = (FD_max_XY / 1000) / 2;
 		detect.F_y = (FD_max_XY % 1000) / 2;
-		detect.F_width = FD_max_XY;
-		detect.F_height = FD_max_XY;
+		detect.F_width = FD_max_XY /1000;
+		detect.F_height = FD_max_XY % 1000;
 
 		//FD結果をテキストファイルに保存
 		fprintf_s(result_data, "%f", detect.C_yudo);
@@ -1238,7 +1238,7 @@ void ROC_data() {
 		fprintf_s(result_data, "%d", detect.F_height);
 		fprintf_s(result_data, "\n");
 
-		printf("%f, %d, %d, %d, %d\n", detect.F_yudo, detect.F_x, detect.F_y, detect.F_width, detect.F_height);
+		printf("%s, %f, %f\n", new_test_name, detect.C_yudo, detect.F_yudo);
 
 		fclose(result_data);
 	}
