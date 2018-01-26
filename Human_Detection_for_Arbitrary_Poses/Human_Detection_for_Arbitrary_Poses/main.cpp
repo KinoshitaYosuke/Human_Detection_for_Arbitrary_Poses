@@ -1100,7 +1100,7 @@ void ROC_data() {
 	//テスト画像ファイル一覧メモ帳読み込み
 	char test_name[1024], result_name[1024];
 	FILE *test_data, *result_data;
-	if (fopen_s(&test_data, "predict-list.txt", "r") != 0) {
+	if (fopen_s(&test_data, "c:/photo/predict-nor-back2.txt", "r") != 0) {
 		cout << "missing" << endl;
 		return;
 	}
@@ -1113,7 +1113,7 @@ void ROC_data() {
 			new_test_name[i + 1] = '\0';
 		}
 
-		char test_path[1024] = "C:/photo/test_data_from_demo/predict_data/";
+		char test_path[1024] = "C:/photo/test_data_from_demo/predict/normalize_data/";
 		strcat_s(test_path, new_test_name);
 
 		for (int i = 0; i < 1024; i++) {
@@ -1139,7 +1139,7 @@ void ROC_data() {
 		cv::Mat img;			//検出矩形処理を施す画像
 		cvtColor(ans_img_CF, img, CV_RGB2GRAY);
 
-		cout << file_num << ":" << new_test_name << endl;
+	//	cout << file_num << ":" << new_test_name << endl;
 		file_num++;
 
 		//Detect_Placeオブジェクトの作成
@@ -1218,8 +1218,8 @@ void ROC_data() {
 		}
 
 		detect.F_yudo = FD_max_ans;
-		detect.F_x = (FD_max_XY / 1000) / 2;
-		detect.F_y = (FD_max_XY % 1000) / 2;
+		detect.F_x = 64 - (FD_max_XY / 1000) / 2;
+		detect.F_y = 64 - (FD_max_XY % 1000) / 2;
 		detect.F_width = FD_max_XY /1000;
 		detect.F_height = FD_max_XY % 1000;
 
