@@ -29,61 +29,63 @@ struct svm_model* FD_24x72;
 struct svm_model* FD_24x80;
 struct svm_model* FD_24x88;
 
-struct svm_model* FD_32x88;
+//struct svm_model* FD_32x88;
 struct svm_model* FD_32x96;
 struct svm_model* FD_32x104;
 struct svm_model* FD_32x112;
-struct svm_model* FD_32x120;
+//struct svm_model* FD_32x120;
 
 struct svm_model* FD_40x72;
-struct svm_model* FD_40x80;
-struct svm_model* FD_40x112;
+//struct svm_model* FD_40x80;
+//struct svm_model* FD_40x112;
 struct svm_model* FD_40x120;
 struct svm_model* FD_40x128;
 
 struct svm_model* FD_48x80;
 struct svm_model* FD_48x88;
-struct svm_model* FD_48x96;
-struct svm_model* FD_48x128;
+//struct svm_model* FD_48x96;
+//struct svm_model* FD_48x128;
 
 struct svm_model* FD_56x96;
 struct svm_model* FD_56x104;
-struct svm_model* FD_56x112;
+//struct svm_model* FD_56x112;
 
 struct svm_model* FD_64x104;
 struct svm_model* FD_64x112;
 struct svm_model* FD_64x120;
-struct svm_model* FD_64x128;
+//struct svm_model* FD_64x128;
 
-struct svm_model* FD_72x16;
+struct svm_model* FD_72x24;
 struct svm_model* FD_72x120;
 struct svm_model* FD_72x128;
 
-struct svm_model* FD_80x16;
+//struct svm_model* FD_80x16;
 struct svm_model* FD_80x24;
 struct svm_model* FD_80x128;
 
 struct svm_model* FD_88x24;
-struct svm_model* FD_88x32;
+struct svm_model* FD_88x56;
+//struct svm_model* FD_88x32;
 
-struct svm_model* FD_96x24;
+//struct svm_model* FD_96x24;
 struct svm_model* FD_96x32;
 
-struct svm_model* FD_104x24;
+//struct svm_model* FD_104x24;
 struct svm_model* FD_104x32;
-struct svm_model* FD_104x40;
+//struct svm_model* FD_104x40;
 
-struct svm_model* FD_112x24;
+//struct svm_model* FD_112x24;
 struct svm_model* FD_112x32;
-struct svm_model* FD_112x40;
+struct svm_model* FD_112x72;
+//struct svm_model* FD_112x40;
 
-struct svm_model* FD_120x24;
-struct svm_model* FD_120x32;
+//struct svm_model* FD_120x24;
+//struct svm_model* FD_120x32;
 struct svm_model* FD_120x40;
 
-struct svm_model* FD_128x32;
+//struct svm_model* FD_128x32;
 struct svm_model* FD_128x40;
-struct svm_model* FD_128x48;
+//struct svm_model* FD_128x48;
 
 //static char *line = NULL;
 static int max_line_len;
@@ -132,20 +134,24 @@ double predict(float *hog_vector, int hog_dim, svm_model* Detector)
 {
 	int svm_type = svm_get_svm_type(Detector);
 	int nr_class = svm_get_nr_class(Detector);
-	double *prob_estimates = NULL;
+//	double *prob_estimates = NULL;
 	int j;
 
-	int *labels = (int *)malloc(nr_class * sizeof(int));
-//	int *labels;
+//	int *labels = (int *)malloc(nr_class * sizeof(int));
+	int labels[2];
+	//2
 	svm_get_labels(Detector, labels);
-	prob_estimates = (double *)malloc(nr_class * sizeof(double));
-//	double *prob_estimates;
-	free(labels);
+//	prob_estimates = (double *)malloc(nr_class * sizeof(double));
+	double prob_estimates[2];
+//	free(labels);
 
 
 	max_line_len = 1024;
 	//	line = (char *)malloc(max_line_len*sizeof(char));
-	x = (struct svm_node *) malloc(max_nr_attr * sizeof(struct svm_node));
+//	x = (struct svm_node *) malloc(max_nr_attr * sizeof(struct svm_node));
+	struct svm_node x[32768];
+//	cout << nr_class <<","<<max_nr_attr<< endl;
+
 	int i;
 	double target_label, predict_label;
 	char *idx, *val, *label, *endptr;
@@ -156,12 +162,12 @@ double predict(float *hog_vector, int hog_dim, svm_model* Detector)
 	for (i = 0; i < hog_dim; i++)
 	{
 		//		clog << i << endl;
-		if (i >= max_nr_attr - 1)	// need one more for index = -1
-		{
-			max_nr_attr *= 2;
-			x = (struct svm_node *) realloc(x, max_nr_attr * sizeof(struct svm_node));
-		}
-
+	//	if (i >= max_nr_attr - 1)	// need one more for index = -1
+	//	{
+	//		max_nr_attr *= 2;
+	//		x = (struct svm_node *) realloc(x, max_nr_attr * sizeof(struct svm_node));
+	//	}
+	//	cout << max_nr_attr << endl;
 		//			clog << i << endl;
 
 		errno = 0;
@@ -174,16 +180,17 @@ double predict(float *hog_vector, int hog_dim, svm_model* Detector)
 	}
 	x[i].index = -1;
 
+//	cout << max_nr_attr << endl;
 
 	predict_label = svm_predict_probability(Detector, x, prob_estimates);
 	//	if (prob_estimates[0] >= YUDO_CD)
 	//		printf(" %f\n", prob_estimates[0]);
 
-	free(x);
+//	free(x);
 	//	free(line);
 
 	double ans = prob_estimates[0];
-	free(prob_estimates);
+//	free(prob_estimates);
 
 	return ans;
 }
@@ -201,7 +208,7 @@ void get_HOG(cv::Mat im, float* hog_vector) {
 	int block_size = 3;
 	int x, y, i, j, k, m, n, count;
 	float dx, dy;
-	float ***hist, *vec_tmp;
+//	float ***hist, *vec_tmp;
 	float norm;
 	CvMat *mag = NULL, *theta = NULL;
 	//	FILE *hog_hist;
@@ -229,13 +236,14 @@ void get_HOG(cv::Mat im, float* hog_vector) {
 	}
 
 	// histogram generation for each cell
-	hist = (float***)malloc(sizeof(float**) * (int)ceil((float)im.rows / (float)cell_size));
+	float hist[22][22][9];
+//	hist = (float***)malloc(sizeof(float**) * (int)ceil((float)im.rows / (float)cell_size));
 	if (hist == NULL) exit(1);
 	for (i = 0; i<(int)ceil((float)im.rows / (float)cell_size); i++) {
-		hist[i] = (float**)malloc(sizeof(float*)*(int)ceil((float)im.cols / (float)cell_size));
+//		hist[i] = (float**)malloc(sizeof(float*)*(int)ceil((float)im.cols / (float)cell_size));
 		if (hist[i] == NULL) exit(1);
 		for (j = 0; j<(int)ceil((float)im.cols / (float)cell_size); j++) {
-			hist[i][j] = (float *)malloc(sizeof(float)*rot_res);
+//			hist[i][j] = (float *)malloc(sizeof(float)*rot_res);
 			if (hist[i][j] == NULL) exit(1);
 		}
 	}
@@ -257,7 +265,8 @@ void get_HOG(cv::Mat im, float* hog_vector) {
 	}
 
 	// normalization for each block & generate vector
-	vec_tmp = (float *)malloc(sizeof(float)*block_size*block_size*rot_res);
+//	vec_tmp = (float *)malloc(sizeof(float)*block_size*block_size*rot_res);
+	float vec_tmp[81];
 	for (i = 0; i<(int)ceil((float)im.rows / (float)cell_size) - (block_size - 1); i++) {
 		for (j = 0; j<(int)ceil((float)im.cols / (float)cell_size) - (block_size - 1); j++) {
 			count = 0;
@@ -283,13 +292,13 @@ void get_HOG(cv::Mat im, float* hog_vector) {
 	}
 	//	printf("\n");
 	//	fprintf(hog_hist, "\n");
-	for (i = 0; i<(int)ceil((float)im.rows / (float)cell_size); i++) {
-		for (j = 0; j <(int)ceil((float)im.cols / (float)cell_size); j++) {
-			free(hist[i][j]);
-		}
-		free(hist[i]);
-	}
-	free(hist);
+//	for (i = 0; i<(int)ceil((float)im.rows / (float)cell_size); i++) {
+//		for (j = 0; j <(int)ceil((float)im.cols / (float)cell_size); j++) {
+//			free(hist[i][j]);
+//		}
+//		free(hist[i]);
+//	}
+//	free(hist);
 	cvReleaseMat(&mag);
 	cvReleaseMat(&theta);
 	//	fclose(hog_hist);
@@ -349,61 +358,61 @@ void detect_1() {
 	if ((FD_24x80 = svm_load_model("C:/model_file/pre_model/FD_24x80.model")) == 0)exit(1);
 	if ((FD_24x88 = svm_load_model("C:/model_file/pre_model/FD_24x88.model")) == 0)exit(1);
 
-	if ((FD_32x88 = svm_load_model("C:/model_file/pre_model/FD_32x88.model")) == 0)exit(1);
+//	if ((FD_32x88 = svm_load_model("C:/model_file/pre_model/FD_32x88.model")) == 0)exit(1);
 	if ((FD_32x96 = svm_load_model("C:/model_file/pre_model/FD_32x96.model")) == 0)exit(1);
 	if ((FD_32x104 = svm_load_model("C:/model_file/pre_model/FD_32x104.model")) == 0)exit(1);
 	if ((FD_32x112 = svm_load_model("C:/model_file/pre_model/FD_32x112.model")) == 0)exit(1);
-	if ((FD_32x120 = svm_load_model("C:/model_file/pre_model/FD_32x120.model")) == 0)exit(1);
+//	if ((FD_32x120 = svm_load_model("C:/model_file/pre_model/FD_32x120.model")) == 0)exit(1);
 
 	if ((FD_40x72 = svm_load_model("C:/model_file/pre_model/FD_40x72.model")) == 0)exit(1);
-	if ((FD_40x80 = svm_load_model("C:/model_file/pre_model/FD_40x80.model")) == 0)exit(1);
-	if ((FD_40x112 = svm_load_model("C:/model_file/pre_model/FD_40x112.model")) == 0)exit(1);
+//	if ((FD_40x80 = svm_load_model("C:/model_file/pre_model/FD_40x80.model")) == 0)exit(1);
+//	if ((FD_40x112 = svm_load_model("C:/model_file/pre_model/FD_40x112.model")) == 0)exit(1);
 	if ((FD_40x120 = svm_load_model("C:/model_file/pre_model/FD_40x120.model")) == 0)exit(1);
 	if ((FD_40x128 = svm_load_model("C:/model_file/pre_model/FD_40x128.model")) == 0)exit(1);
 
 	if ((FD_48x80 = svm_load_model("C:/model_file/pre_model/FD_48x80.model")) == 0)exit(1);
 	if ((FD_48x88 = svm_load_model("C:/model_file/pre_model/FD_48x88.model")) == 0)exit(1);
-	if ((FD_48x96 = svm_load_model("C:/model_file/pre_model/FD_48x96.model")) == 0)exit(1);
-	if ((FD_48x128 = svm_load_model("C:/model_file/pre_model/FD_48x128.model")) == 0)exit(1);
+//	if ((FD_48x96 = svm_load_model("C:/model_file/pre_model/FD_48x96.model")) == 0)exit(1);
+//	if ((FD_48x128 = svm_load_model("C:/model_file/pre_model/FD_48x128.model")) == 0)exit(1);
 
 	if ((FD_56x96 = svm_load_model("C:/model_file/pre_model/FD_56x96.model")) == 0)exit(1);
 	if ((FD_56x104 = svm_load_model("C:/model_file/pre_model/FD_56x104.model")) == 0)exit(1);
-	if ((FD_56x112 = svm_load_model("C:/model_file/pre_model/FD_56x112.model")) == 0)exit(1);
+//	if ((FD_56x112 = svm_load_model("C:/model_file/pre_model/FD_56x112.model")) == 0)exit(1);
 
 	if ((FD_64x104 = svm_load_model("C:/model_file/pre_model/FD_64x104.model")) == 0)exit(1);
 	if ((FD_64x112 = svm_load_model("C:/model_file/pre_model/FD_64x112.model")) == 0)exit(1);
 	if ((FD_64x120 = svm_load_model("C:/model_file/pre_model/FD_64x120.model")) == 0)exit(1);
-	if ((FD_64x128 = svm_load_model("C:/model_file/pre_model/FD_64x128.model")) == 0)exit(1);
+//	if ((FD_64x128 = svm_load_model("C:/model_file/pre_model/FD_64x128.model")) == 0)exit(1);
 
-	if ((FD_72x16 = svm_load_model("C:/model_file/pre_model/FD_72x16.model")) == 0)exit(1);
+	if ((FD_72x24 = svm_load_model("C:/model_file/pre_model/FD_72x24.model")) == 0)exit(1);
 	if ((FD_72x120 = svm_load_model("C:/model_file/pre_model/FD_72x120.model")) == 0)exit(1);
 	if ((FD_72x128 = svm_load_model("C:/model_file/pre_model/FD_72x128.model")) == 0)exit(1);
 
-	if ((FD_80x16 = svm_load_model("C:/model_file/pre_model/FD_80x16.model")) == 0)exit(1);
+//	if ((FD_80x16 = svm_load_model("C:/model_file/pre_model/FD_80x16.model")) == 0)exit(1);
 	if ((FD_80x24 = svm_load_model("C:/model_file/pre_model/FD_80x24.model")) == 0)exit(1);
 	if ((FD_80x128 = svm_load_model("C:/model_file/pre_model/FD_80x128.model")) == 0)exit(1);
 
 	if ((FD_88x24 = svm_load_model("C:/model_file/pre_model/FD_88x24.model")) == 0)exit(1);
-	if ((FD_88x32 = svm_load_model("C:/model_file/pre_model/FD_88x32.model")) == 0)exit(1);
+//	if ((FD_88x32 = svm_load_model("C:/model_file/pre_model/FD_88x32.model")) == 0)exit(1);
 
-	if ((FD_96x24 = svm_load_model("C:/model_file/pre_model/FD_96x24.model")) == 0)exit(1);
+//	if ((FD_96x24 = svm_load_model("C:/model_file/pre_model/FD_96x24.model")) == 0)exit(1);
 	if ((FD_96x32 = svm_load_model("C:/model_file/pre_model/FD_96x32.model")) == 0)exit(1);
 
-	if ((FD_104x24 = svm_load_model("C:/model_file/pre_model/FD_104x24.model")) == 0)exit(1);
+//	if ((FD_104x24 = svm_load_model("C:/model_file/pre_model/FD_104x24.model")) == 0)exit(1);
 	if ((FD_104x32 = svm_load_model("C:/model_file/pre_model/FD_104x32.model")) == 0)exit(1);
-	if ((FD_104x40 = svm_load_model("C:/model_file/pre_model/FD_104x40.model")) == 0)exit(1);
+//	if ((FD_104x40 = svm_load_model("C:/model_file/pre_model/FD_104x40.model")) == 0)exit(1);
 
-	if ((FD_112x24 = svm_load_model("C:/model_file/pre_model/FD_112x24.model")) == 0)exit(1);
+//	if ((FD_112x24 = svm_load_model("C:/model_file/pre_model/FD_112x24.model")) == 0)exit(1);
 	if ((FD_112x32 = svm_load_model("C:/model_file/pre_model/FD_112x32.model")) == 0)exit(1);
-	if ((FD_112x40 = svm_load_model("C:/model_file/pre_model/FD_112x40.model")) == 0)exit(1);
+//	if ((FD_112x40 = svm_load_model("C:/model_file/pre_model/FD_112x40.model")) == 0)exit(1);
 
-	if ((FD_120x24 = svm_load_model("C:/model_file/pre_model/FD_120x24.model")) == 0)exit(1);
-	if ((FD_120x32 = svm_load_model("C:/model_file/pre_model/FD_120x32.model")) == 0)exit(1);
+//	if ((FD_120x24 = svm_load_model("C:/model_file/pre_model/FD_120x24.model")) == 0)exit(1);
+//	if ((FD_120x32 = svm_load_model("C:/model_file/pre_model/FD_120x32.model")) == 0)exit(1);
 	if ((FD_120x40 = svm_load_model("C:/model_file/pre_model/FD_120x40.model")) == 0)exit(1);
 
-	if ((FD_128x32 = svm_load_model("C:/model_file/pre_model/FD_128x32.model")) == 0)exit(1);
+//	if ((FD_128x32 = svm_load_model("C:/model_file/pre_model/FD_128x32.model")) == 0)exit(1);
 	if ((FD_128x40 = svm_load_model("C:/model_file/pre_model/FD_128x40.model")) == 0)exit(1);
-	if ((FD_128x48 = svm_load_model("C:/model_file/pre_model/FD_128x48.model")) == 0)exit(1);
+//	if ((FD_128x48 = svm_load_model("C:/model_file/pre_model/FD_128x48.model")) == 0)exit(1);
 
 
 
@@ -536,61 +545,61 @@ void detect_1() {
 					FD_predict(24, 80, FD_img, FD_24x80);
 					FD_predict(24, 88, FD_img, FD_24x88);
 
-					FD_predict(32, 88, FD_img, FD_32x88);
+				//	FD_predict(32, 88, FD_img, FD_32x88);
 					FD_predict(32, 96, FD_img, FD_32x96);
 					FD_predict(32, 104, FD_img, FD_32x104);
 					FD_predict(32, 112, FD_img, FD_32x112);
-					FD_predict(32, 120, FD_img, FD_32x120);
+				//	FD_predict(32, 120, FD_img, FD_32x120);
 
 					FD_predict(40, 72, FD_img, FD_40x72);
-					FD_predict(40, 80, FD_img, FD_40x80);
-					FD_predict(40, 112, FD_img, FD_40x112);
+				//	FD_predict(40, 80, FD_img, FD_40x80);
+				//	FD_predict(40, 112, FD_img, FD_40x112);
 					FD_predict(40, 120, FD_img, FD_40x120);
 					FD_predict(40, 128, FD_img, FD_40x128);
 
 					FD_predict(48, 80, FD_img, FD_48x80);
 					FD_predict(48, 88, FD_img, FD_48x88);
-					FD_predict(48, 96, FD_img, FD_48x96);
-					FD_predict(48, 128, FD_img, FD_48x128);
+				//	FD_predict(48, 96, FD_img, FD_48x96);
+				//	FD_predict(48, 128, FD_img, FD_48x128);
 
 					FD_predict(56, 96, FD_img, FD_56x96);
 					FD_predict(56, 104, FD_img, FD_56x104);
-					FD_predict(56, 112, FD_img, FD_56x112);
+				//	FD_predict(56, 112, FD_img, FD_56x112);
 
 					FD_predict(64, 104, FD_img, FD_64x104);
 					FD_predict(64, 112, FD_img, FD_64x112);
 					FD_predict(64, 120, FD_img, FD_64x120);
-					FD_predict(64, 128, FD_img, FD_64x128);
+				//	FD_predict(64, 128, FD_img, FD_64x128);
 
-					FD_predict(72, 16, FD_img, FD_72x16);
+					FD_predict(72, 16, FD_img, FD_72x24);
 					FD_predict(72, 120, FD_img, FD_72x120);
 					FD_predict(72, 128, FD_img, FD_72x128);
 
-					FD_predict(80, 16, FD_img, FD_80x16);
+				//	FD_predict(80, 16, FD_img, FD_80x16);
 					FD_predict(80, 24, FD_img, FD_80x24);
 					FD_predict(80, 128, FD_img, FD_80x128);
 
 					FD_predict(88, 24, FD_img, FD_88x24);
-					FD_predict(88, 32, FD_img, FD_88x32);
+				//	FD_predict(88, 32, FD_img, FD_88x32);
 
-					FD_predict(96, 24, FD_img, FD_96x24);
+				//	FD_predict(96, 24, FD_img, FD_96x24);
 					FD_predict(96, 32, FD_img, FD_96x32);
 
-					FD_predict(104, 24, FD_img, FD_104x24);
+				//	FD_predict(104, 24, FD_img, FD_104x24);
 					FD_predict(104, 32, FD_img, FD_104x32);
-					FD_predict(104, 40, FD_img, FD_104x40);
+				//	FD_predict(104, 40, FD_img, FD_104x40);
 
-					FD_predict(112, 24, FD_img, FD_112x24);
+				//	FD_predict(112, 24, FD_img, FD_112x24);
 					FD_predict(112, 32, FD_img, FD_112x32);
-					FD_predict(112, 40, FD_img, FD_112x40);
+				//	FD_predict(112, 40, FD_img, FD_112x40);
 
-					FD_predict(120, 24, FD_img, FD_120x24);
-					FD_predict(120, 32, FD_img, FD_120x32);
+				//	FD_predict(120, 24, FD_img, FD_120x24);
+				//	FD_predict(120, 32, FD_img, FD_120x32);
 					FD_predict(120, 40, FD_img, FD_120x40);
 
-					FD_predict(128, 32, FD_img, FD_128x32);
+				//	FD_predict(128, 32, FD_img, FD_128x32);
 					FD_predict(128, 40, FD_img, FD_128x40);
-					FD_predict(128, 48, FD_img, FD_128x48);
+				//	FD_predict(128, 48, FD_img, FD_128x48);
 
 
 					if (FD_max_ans > YUDO_FD && FD_max_ans > detect[i].F_yudo) {
@@ -770,69 +779,72 @@ void detect_2() {
 	int hog_dim;
 
 	//CoarseDetectorの取り込み
-//	if ((CD = svm_load_model("C:/model_file/pre_model/CD_123.model")) == 0)exit(1);
+	{
+		//	if ((CD = svm_load_model("C:/model_file/pre_model/CD_123.model")) == 0)exit(1);
 
-	if ((FD_24x72 = svm_load_model("C:/model_file/pre_model/FD_24x72.model")) == 0)exit(1);
-	if ((FD_24x80 = svm_load_model("C:/model_file/pre_model/FD_24x80.model")) == 0)exit(1);
-	if ((FD_24x88 = svm_load_model("C:/model_file/pre_model/FD_24x88.model")) == 0)exit(1);
+		if ((FD_24x72 = svm_load_model("C:/model_file/pre_model/FD_24x72.model")) == 0)exit(1);
+		if ((FD_24x80 = svm_load_model("C:/model_file/pre_model/FD_24x80.model")) == 0)exit(1);
+		if ((FD_24x88 = svm_load_model("C:/model_file/pre_model/FD_24x88.model")) == 0)exit(1);
 
-	if ((FD_32x88 = svm_load_model("C:/model_file/pre_model/FD_32x88.model")) == 0)exit(1);
-	if ((FD_32x96 = svm_load_model("C:/model_file/pre_model/FD_32x96.model")) == 0)exit(1);
-	if ((FD_32x104 = svm_load_model("C:/model_file/pre_model/FD_32x104.model")) == 0)exit(1);
-	if ((FD_32x112 = svm_load_model("C:/model_file/pre_model/FD_32x112.model")) == 0)exit(1);
-	if ((FD_32x120 = svm_load_model("C:/model_file/pre_model/FD_32x120.model")) == 0)exit(1);
+		//	if ((FD_32x88 = svm_load_model("C:/model_file/pre_model/FD_32x88.model")) == 0)exit(1);
+		if ((FD_32x96 = svm_load_model("C:/model_file/pre_model/FD_32x96.model")) == 0)exit(1);
+		if ((FD_32x104 = svm_load_model("C:/model_file/pre_model/FD_32x104.model")) == 0)exit(1);
+		if ((FD_32x112 = svm_load_model("C:/model_file/pre_model/FD_32x112.model")) == 0)exit(1);
+		//	if ((FD_32x120 = svm_load_model("C:/model_file/pre_model/FD_32x120.model")) == 0)exit(1);
 
-	if ((FD_40x72 = svm_load_model("C:/model_file/pre_model/FD_40x72.model")) == 0)exit(1);
-	if ((FD_40x80 = svm_load_model("C:/model_file/pre_model/FD_40x80.model")) == 0)exit(1);
-	if ((FD_40x112 = svm_load_model("C:/model_file/pre_model/FD_40x112.model")) == 0)exit(1);
-	if ((FD_40x120 = svm_load_model("C:/model_file/pre_model/FD_40x120.model")) == 0)exit(1);
-	if ((FD_40x128 = svm_load_model("C:/model_file/pre_model/FD_40x128.model")) == 0)exit(1);
+		if ((FD_40x72 = svm_load_model("C:/model_file/pre_model/FD_40x72.model")) == 0)exit(1);
+		//	if ((FD_40x80 = svm_load_model("C:/model_file/pre_model/FD_40x80.model")) == 0)exit(1);
+		//	if ((FD_40x112 = svm_load_model("C:/model_file/pre_model/FD_40x112.model")) == 0)exit(1);
+		if ((FD_40x120 = svm_load_model("C:/model_file/pre_model/FD_40x120.model")) == 0)exit(1);
+		if ((FD_40x128 = svm_load_model("C:/model_file/pre_model/FD_40x128.model")) == 0)exit(1);
 
-	if ((FD_48x80 = svm_load_model("C:/model_file/pre_model/FD_48x80.model")) == 0)exit(1);
-	if ((FD_48x88 = svm_load_model("C:/model_file/pre_model/FD_48x88.model")) == 0)exit(1);
-	if ((FD_48x96 = svm_load_model("C:/model_file/pre_model/FD_48x96.model")) == 0)exit(1);
-	if ((FD_48x128 = svm_load_model("C:/model_file/pre_model/FD_48x128.model")) == 0)exit(1);
+		if ((FD_48x80 = svm_load_model("C:/model_file/pre_model/FD_48x80.model")) == 0)exit(1);
+		if ((FD_48x88 = svm_load_model("C:/model_file/pre_model/FD_48x88.model")) == 0)exit(1);
+		//	if ((FD_48x96 = svm_load_model("C:/model_file/pre_model/FD_48x96.model")) == 0)exit(1);
+		//	if ((FD_48x128 = svm_load_model("C:/model_file/pre_model/FD_48x128.model")) == 0)exit(1);
 
-	if ((FD_56x96 = svm_load_model("C:/model_file/pre_model/FD_56x96.model")) == 0)exit(1);
-	if ((FD_56x104 = svm_load_model("C:/model_file/pre_model/FD_56x104.model")) == 0)exit(1);
-	if ((FD_56x112 = svm_load_model("C:/model_file/pre_model/FD_56x112.model")) == 0)exit(1);
+		if ((FD_56x96 = svm_load_model("C:/model_file/pre_model/FD_56x96.model")) == 0)exit(1);
+		if ((FD_56x104 = svm_load_model("C:/model_file/pre_model/FD_56x104.model")) == 0)exit(1);
+		//	if ((FD_56x112 = svm_load_model("C:/model_file/pre_model/FD_56x112.model")) == 0)exit(1);
 
-	if ((FD_64x104 = svm_load_model("C:/model_file/pre_model/FD_64x104.model")) == 0)exit(1);
-	if ((FD_64x112 = svm_load_model("C:/model_file/pre_model/FD_64x112.model")) == 0)exit(1);
-	if ((FD_64x120 = svm_load_model("C:/model_file/pre_model/FD_64x120.model")) == 0)exit(1);
-	if ((FD_64x128 = svm_load_model("C:/model_file/pre_model/FD_64x128.model")) == 0)exit(1);
+		if ((FD_64x104 = svm_load_model("C:/model_file/pre_model/FD_64x104.model")) == 0)exit(1);
+		if ((FD_64x112 = svm_load_model("C:/model_file/pre_model/FD_64x112.model")) == 0)exit(1);
+		if ((FD_64x120 = svm_load_model("C:/model_file/pre_model/FD_64x120.model")) == 0)exit(1);
+		//	if ((FD_64x128 = svm_load_model("C:/model_file/pre_model/FD_64x128.model")) == 0)exit(1);
 
-	if ((FD_72x16 = svm_load_model("C:/model_file/pre_model/FD_72x16.model")) == 0)exit(1);
-	if ((FD_72x120 = svm_load_model("C:/model_file/pre_model/FD_72x120.model")) == 0)exit(1);
-	if ((FD_72x128 = svm_load_model("C:/model_file/pre_model/FD_72x128.model")) == 0)exit(1);
+		if ((FD_72x24 = svm_load_model("C:/model_file/pre_model/FD_72x24.model")) == 0)exit(1);
+		if ((FD_72x120 = svm_load_model("C:/model_file/pre_model/FD_72x120.model")) == 0)exit(1);
+		if ((FD_72x128 = svm_load_model("C:/model_file/pre_model/FD_72x128.model")) == 0)exit(1);
 
-	if ((FD_80x16 = svm_load_model("C:/model_file/pre_model/FD_80x16.model")) == 0)exit(1);
-	if ((FD_80x24 = svm_load_model("C:/model_file/pre_model/FD_80x24.model")) == 0)exit(1);
-	if ((FD_80x128 = svm_load_model("C:/model_file/pre_model/FD_80x128.model")) == 0)exit(1);
+		//	if ((FD_80x16 = svm_load_model("C:/model_file/pre_model/FD_80x16.model")) == 0)exit(1);
+		if ((FD_80x24 = svm_load_model("C:/model_file/pre_model/FD_80x24.model")) == 0)exit(1);
+		if ((FD_80x128 = svm_load_model("C:/model_file/pre_model/FD_80x128.model")) == 0)exit(1);
 
-	if ((FD_88x24 = svm_load_model("C:/model_file/pre_model/FD_88x24.model")) == 0)exit(1);
-	if ((FD_88x32 = svm_load_model("C:/model_file/pre_model/FD_88x32.model")) == 0)exit(1);
+		if ((FD_88x24 = svm_load_model("C:/model_file/pre_model/FD_88x24.model")) == 0)exit(1);
+		if ((FD_88x56 = svm_load_model("C:/model_file/pre_model/FD_88x56.model")) == 0)exit(1);
+		//	if ((FD_88x32 = svm_load_model("C:/model_file/pre_model/FD_88x32.model")) == 0)exit(1);
 
-	if ((FD_96x24 = svm_load_model("C:/model_file/pre_model/FD_96x24.model")) == 0)exit(1);
-	if ((FD_96x32 = svm_load_model("C:/model_file/pre_model/FD_96x32.model")) == 0)exit(1);
+		//	if ((FD_96x24 = svm_load_model("C:/model_file/pre_model/FD_96x24.model")) == 0)exit(1);
+		if ((FD_96x32 = svm_load_model("C:/model_file/pre_model/FD_96x32.model")) == 0)exit(1);
 
-	if ((FD_104x24 = svm_load_model("C:/model_file/pre_model/FD_104x24.model")) == 0)exit(1);
-	if ((FD_104x32 = svm_load_model("C:/model_file/pre_model/FD_104x32.model")) == 0)exit(1);
-	if ((FD_104x40 = svm_load_model("C:/model_file/pre_model/FD_104x40.model")) == 0)exit(1);
+		//	if ((FD_104x24 = svm_load_model("C:/model_file/pre_model/FD_104x24.model")) == 0)exit(1);
+		if ((FD_104x32 = svm_load_model("C:/model_file/pre_model/FD_104x32.model")) == 0)exit(1);
+		//	if ((FD_104x40 = svm_load_model("C:/model_file/pre_model/FD_104x40.model")) == 0)exit(1);
 
-	if ((FD_112x24 = svm_load_model("C:/model_file/pre_model/FD_112x24.model")) == 0)exit(1);
-	if ((FD_112x32 = svm_load_model("C:/model_file/pre_model/FD_112x32.model")) == 0)exit(1);
-	if ((FD_112x40 = svm_load_model("C:/model_file/pre_model/FD_112x40.model")) == 0)exit(1);
+		//	if ((FD_112x24 = svm_load_model("C:/model_file/pre_model/FD_112x24.model")) == 0)exit(1);
+		if ((FD_112x32 = svm_load_model("C:/model_file/pre_model/FD_112x32.model")) == 0)exit(1);
+		if ((FD_112x72 = svm_load_model("C:/model_file/pre_model/FD_112x72.model")) == 0)exit(1);
+		//	if ((FD_112x40 = svm_load_model("C:/model_file/pre_model/FD_112x40.model")) == 0)exit(1);
 
-	if ((FD_120x24 = svm_load_model("C:/model_file/pre_model/FD_120x24.model")) == 0)exit(1);
-	if ((FD_120x32 = svm_load_model("C:/model_file/pre_model/FD_120x32.model")) == 0)exit(1);
-	if ((FD_120x40 = svm_load_model("C:/model_file/pre_model/FD_120x40.model")) == 0)exit(1);
+		//	if ((FD_120x24 = svm_load_model("C:/model_file/pre_model/FD_120x24.model")) == 0)exit(1);
+		//	if ((FD_120x32 = svm_load_model("C:/model_file/pre_model/FD_120x32.model")) == 0)exit(1);
+		if ((FD_120x40 = svm_load_model("C:/model_file/pre_model/FD_120x40.model")) == 0)exit(1);
 
-	if ((FD_128x32 = svm_load_model("C:/model_file/pre_model/FD_128x32.model")) == 0)exit(1);
-	if ((FD_128x40 = svm_load_model("C:/model_file/pre_model/FD_128x40.model")) == 0)exit(1);
-	if ((FD_128x48 = svm_load_model("C:/model_file/pre_model/FD_128x48.model")) == 0)exit(1);
+		//	if ((FD_128x32 = svm_load_model("C:/model_file/pre_model/FD_128x32.model")) == 0)exit(1);
+		if ((FD_128x40 = svm_load_model("C:/model_file/pre_model/FD_128x40.model")) == 0)exit(1);
+		//	if ((FD_128x48 = svm_load_model("C:/model_file/pre_model/FD_128x48.model")) == 0)exit(1);
 
-
+	}
 
 	//テスト画像ファイル一覧メモ帳読み込み
 	char test_name[1024], result_name[1024];
@@ -916,67 +928,69 @@ void detect_2() {
 			cv::Mat FD_img = img(cv::Rect(detect.C_x, detect.C_y, detect.C_width, detect.C_height));
 
 			cv::resize(FD_img, FD_img, cv::Size(), 128.0 / FD_img.cols, 128.0 / FD_img.rows);
+			{
+				FD_predict(24, 72, FD_img, FD_24x72);
+				FD_predict(24, 80, FD_img, FD_24x80);
+				FD_predict(24, 88, FD_img, FD_24x88);
 
-			FD_predict(24, 72, FD_img, FD_24x72);
-			FD_predict(24, 80, FD_img, FD_24x80);
-			FD_predict(24, 88, FD_img, FD_24x88);
+				//	FD_predict(32, 88, FD_img, FD_32x88);
+				FD_predict(32, 96, FD_img, FD_32x96);
+				FD_predict(32, 104, FD_img, FD_32x104);
+				FD_predict(32, 112, FD_img, FD_32x112);
+				//	FD_predict(32, 120, FD_img, FD_32x120);
 
-			FD_predict(32, 88, FD_img, FD_32x88);
-			FD_predict(32, 96, FD_img, FD_32x96);
-			FD_predict(32, 104, FD_img, FD_32x104);
-			FD_predict(32, 112, FD_img, FD_32x112);
-			FD_predict(32, 120, FD_img, FD_32x120);
+				FD_predict(40, 72, FD_img, FD_40x72);
+				//	FD_predict(40, 80, FD_img, FD_40x80);
+				//	FD_predict(40, 112, FD_img, FD_40x112);
+				FD_predict(40, 120, FD_img, FD_40x120);
+				FD_predict(40, 128, FD_img, FD_40x128);
 
-			FD_predict(40, 72, FD_img, FD_40x72);
-			FD_predict(40, 80, FD_img, FD_40x80);
-			FD_predict(40, 112, FD_img, FD_40x112);
-			FD_predict(40, 120, FD_img, FD_40x120);
-			FD_predict(40, 128, FD_img, FD_40x128);
+				FD_predict(48, 80, FD_img, FD_48x80);
+				FD_predict(48, 88, FD_img, FD_48x88);
+				//	FD_predict(48, 96, FD_img, FD_48x96);
+				//	FD_predict(48, 128, FD_img, FD_48x128);
 
-			FD_predict(48, 80, FD_img, FD_48x80);
-			FD_predict(48, 88, FD_img, FD_48x88);
-			FD_predict(48, 96, FD_img, FD_48x96);
-			FD_predict(48, 128, FD_img, FD_48x128);
+				FD_predict(56, 96, FD_img, FD_56x96);
+				FD_predict(56, 104, FD_img, FD_56x104);
+				//	FD_predict(56, 112, FD_img, FD_56x112);
 
-			FD_predict(56, 96, FD_img, FD_56x96);
-			FD_predict(56, 104, FD_img, FD_56x104);
-			FD_predict(56, 112, FD_img, FD_56x112);
+				FD_predict(64, 104, FD_img, FD_64x104);
+				FD_predict(64, 112, FD_img, FD_64x112);
+				FD_predict(64, 120, FD_img, FD_64x120);
+				//	FD_predict(64, 128, FD_img, FD_64x128);
 
-			FD_predict(64, 104, FD_img, FD_64x104);
-			FD_predict(64, 112, FD_img, FD_64x112);
-			FD_predict(64, 120, FD_img, FD_64x120);
-			FD_predict(64, 128, FD_img, FD_64x128);
+				FD_predict(72, 24, FD_img, FD_72x24);
+				FD_predict(72, 120, FD_img, FD_72x120);
+				FD_predict(72, 128, FD_img, FD_72x128);
 
-			FD_predict(72, 16, FD_img, FD_72x16);
-			FD_predict(72, 120, FD_img, FD_72x120);
-			FD_predict(72, 128, FD_img, FD_72x128);
+				//	FD_predict(80, 16, FD_img, FD_80x16);
+				FD_predict(80, 24, FD_img, FD_80x24);
+				FD_predict(80, 128, FD_img, FD_80x128);
 
-			FD_predict(80, 16, FD_img, FD_80x16);
-			FD_predict(80, 24, FD_img, FD_80x24);
-			FD_predict(80, 128, FD_img, FD_80x128);
+				FD_predict(88, 24, FD_img, FD_88x24);
+				FD_predict(88, 56, FD_img, FD_88x56);
+				//	FD_predict(88, 32, FD_img, FD_88x32);
 
-			FD_predict(88, 24, FD_img, FD_88x24);
-			FD_predict(88, 32, FD_img, FD_88x32);
+				//	FD_predict(96, 24, FD_img, FD_96x24);
+				FD_predict(96, 32, FD_img, FD_96x32);
 
-			FD_predict(96, 24, FD_img, FD_96x24);
-			FD_predict(96, 32, FD_img, FD_96x32);
+				//	FD_predict(104, 24, FD_img, FD_104x24);
+				FD_predict(104, 32, FD_img, FD_104x32);
+				//	FD_predict(104, 40, FD_img, FD_104x40);
 
-			FD_predict(104, 24, FD_img, FD_104x24);
-			FD_predict(104, 32, FD_img, FD_104x32);
-			FD_predict(104, 40, FD_img, FD_104x40);
+				//	FD_predict(112, 24, FD_img, FD_112x24);
+				FD_predict(112, 32, FD_img, FD_112x32);
+				FD_predict(112, 72, FD_img, FD_112x72);
+				//	FD_predict(112, 40, FD_img, FD_112x40);
 
-			FD_predict(112, 24, FD_img, FD_112x24);
-			FD_predict(112, 32, FD_img, FD_112x32);
-			FD_predict(112, 40, FD_img, FD_112x40);
+				//	FD_predict(120, 24, FD_img, FD_120x24);
+				//	FD_predict(120, 32, FD_img, FD_120x32);
+				FD_predict(120, 40, FD_img, FD_120x40);
 
-			FD_predict(120, 24, FD_img, FD_120x24);
-			FD_predict(120, 32, FD_img, FD_120x32);
-			FD_predict(120, 40, FD_img, FD_120x40);
-
-			FD_predict(128, 32, FD_img, FD_128x32);
-			FD_predict(128, 40, FD_img, FD_128x40);
-			FD_predict(128, 48, FD_img, FD_128x48);
-
+				//	FD_predict(128, 32, FD_img, FD_128x32);
+				FD_predict(128, 40, FD_img, FD_128x40);
+				//	FD_predict(128, 48, FD_img, FD_128x48);
+			}
 
 			if (FD_max_ans != 0) {
 				int F_x1 = (detect.C_x + (float)detect.C_width / 2) - (((float)detect.C_width / 128) * (FD_max_XY / 2000));
@@ -989,8 +1003,6 @@ void detect_2() {
 				detect.F_y = F_y1;
 				detect.F_width = F_width;
 				detect.F_height = F_height;
-
-
 
 				fprintf_s(result_data, "%f", detect.C_yudo);
 				fprintf_s(result_data, "\n");
@@ -1024,6 +1036,7 @@ void detect_2() {
 
 		}
 		fclose(CD_data);
+		fclose(result_data);
 //		cv::imshow("", ans_img_CF);
 //		cvWaitKey(0);
 	}
@@ -1032,6 +1045,298 @@ void detect_2() {
 	fclose(test_data);
 }
 
+void detect_3() {
+	//変数宣言
+	//	int x, y;
+
+	int file_num = 1;
+
+	int count = 0;
+	int hog_dim;
+
+	//CoarseDetectorの取り込み
+	{
+		//	if ((CD = svm_load_model("C:/model_file/pre_model/CD_123.model")) == 0)exit(1);
+
+		if ((FD_24x72 = svm_load_model("C:/model_file/pre_model/FD_24x72.model")) == 0)exit(1);
+		if ((FD_24x80 = svm_load_model("C:/model_file/pre_model/FD_24x80.model")) == 0)exit(1);
+		if ((FD_24x88 = svm_load_model("C:/model_file/pre_model/FD_24x88.model")) == 0)exit(1);
+
+		//	if ((FD_32x88 = svm_load_model("C:/model_file/pre_model/FD_32x88.model")) == 0)exit(1);
+		if ((FD_32x96 = svm_load_model("C:/model_file/pre_model/FD_32x96.model")) == 0)exit(1);
+		if ((FD_32x104 = svm_load_model("C:/model_file/pre_model/FD_32x104.model")) == 0)exit(1);
+		if ((FD_32x112 = svm_load_model("C:/model_file/pre_model/FD_32x112.model")) == 0)exit(1);
+		//	if ((FD_32x120 = svm_load_model("C:/model_file/pre_model/FD_32x120.model")) == 0)exit(1);
+
+		if ((FD_40x72 = svm_load_model("C:/model_file/pre_model/FD_40x72.model")) == 0)exit(1);
+		//	if ((FD_40x80 = svm_load_model("C:/model_file/pre_model/FD_40x80.model")) == 0)exit(1);
+		//	if ((FD_40x112 = svm_load_model("C:/model_file/pre_model/FD_40x112.model")) == 0)exit(1);
+		if ((FD_40x120 = svm_load_model("C:/model_file/pre_model/FD_40x120.model")) == 0)exit(1);
+		if ((FD_40x128 = svm_load_model("C:/model_file/pre_model/FD_40x128.model")) == 0)exit(1);
+
+		if ((FD_48x80 = svm_load_model("C:/model_file/pre_model/FD_48x80.model")) == 0)exit(1);
+		if ((FD_48x88 = svm_load_model("C:/model_file/pre_model/FD_48x88.model")) == 0)exit(1);
+		//	if ((FD_48x96 = svm_load_model("C:/model_file/pre_model/FD_48x96.model")) == 0)exit(1);
+		//	if ((FD_48x128 = svm_load_model("C:/model_file/pre_model/FD_48x128.model")) == 0)exit(1);
+
+		if ((FD_56x96 = svm_load_model("C:/model_file/pre_model/FD_56x96.model")) == 0)exit(1);
+		if ((FD_56x104 = svm_load_model("C:/model_file/pre_model/FD_56x104.model")) == 0)exit(1);
+		//	if ((FD_56x112 = svm_load_model("C:/model_file/pre_model/FD_56x112.model")) == 0)exit(1);
+
+		if ((FD_64x104 = svm_load_model("C:/model_file/pre_model/FD_64x104.model")) == 0)exit(1);
+		if ((FD_64x112 = svm_load_model("C:/model_file/pre_model/FD_64x112.model")) == 0)exit(1);
+		if ((FD_64x120 = svm_load_model("C:/model_file/pre_model/FD_64x120.model")) == 0)exit(1);
+		//	if ((FD_64x128 = svm_load_model("C:/model_file/pre_model/FD_64x128.model")) == 0)exit(1);
+
+		if ((FD_72x24 = svm_load_model("C:/model_file/pre_model/FD_72x24.model")) == 0)exit(1);
+		if ((FD_72x120 = svm_load_model("C:/model_file/pre_model/FD_72x120.model")) == 0)exit(1);
+		if ((FD_72x128 = svm_load_model("C:/model_file/pre_model/FD_72x128.model")) == 0)exit(1);
+
+		//	if ((FD_80x16 = svm_load_model("C:/model_file/pre_model/FD_80x16.model")) == 0)exit(1);
+		if ((FD_80x24 = svm_load_model("C:/model_file/pre_model/FD_80x24.model")) == 0)exit(1);
+		if ((FD_80x128 = svm_load_model("C:/model_file/pre_model/FD_80x128.model")) == 0)exit(1);
+
+		if ((FD_88x24 = svm_load_model("C:/model_file/pre_model/FD_88x24.model")) == 0)exit(1);
+		if ((FD_88x56 = svm_load_model("C:/model_file/pre_model/FD_88x56.model")) == 0)exit(1);
+		//	if ((FD_88x32 = svm_load_model("C:/model_file/pre_model/FD_88x32.model")) == 0)exit(1);
+
+		//	if ((FD_96x24 = svm_load_model("C:/model_file/pre_model/FD_96x24.model")) == 0)exit(1);
+		if ((FD_96x32 = svm_load_model("C:/model_file/pre_model/FD_96x32.model")) == 0)exit(1);
+
+		//	if ((FD_104x24 = svm_load_model("C:/model_file/pre_model/FD_104x24.model")) == 0)exit(1);
+		if ((FD_104x32 = svm_load_model("C:/model_file/pre_model/FD_104x32.model")) == 0)exit(1);
+		//	if ((FD_104x40 = svm_load_model("C:/model_file/pre_model/FD_104x40.model")) == 0)exit(1);
+
+		//	if ((FD_112x24 = svm_load_model("C:/model_file/pre_model/FD_112x24.model")) == 0)exit(1);
+		if ((FD_112x32 = svm_load_model("C:/model_file/pre_model/FD_112x32.model")) == 0)exit(1);
+		if ((FD_112x72 = svm_load_model("C:/model_file/pre_model/FD_112x72.model")) == 0)exit(1);
+		//	if ((FD_112x40 = svm_load_model("C:/model_file/pre_model/FD_112x40.model")) == 0)exit(1);
+
+		//	if ((FD_120x24 = svm_load_model("C:/model_file/pre_model/FD_120x24.model")) == 0)exit(1);
+		//	if ((FD_120x32 = svm_load_model("C:/model_file/pre_model/FD_120x32.model")) == 0)exit(1);
+		if ((FD_120x40 = svm_load_model("C:/model_file/pre_model/FD_120x40.model")) == 0)exit(1);
+
+		//	if ((FD_128x32 = svm_load_model("C:/model_file/pre_model/FD_128x32.model")) == 0)exit(1);
+		if ((FD_128x40 = svm_load_model("C:/model_file/pre_model/FD_128x40.model")) == 0)exit(1);
+		//	if ((FD_128x48 = svm_load_model("C:/model_file/pre_model/FD_128x48.model")) == 0)exit(1);
+
+	}
+
+	//テスト画像ファイル一覧メモ帳読み込み
+	char test_name[1024], result_name[1024];
+	FILE *test_data, *result_data;
+	if (fopen_s(&test_data, "c:/photo/test_list_2.txt", "r") != 0) {
+		cout << "missing" << endl;
+		return;
+	}
+
+	while (fgets(test_name, 256, test_data) != NULL) {
+		string name_tes = test_name;
+		char new_test_name[1024];
+		for (int i = 0; i < name_tes.length() - 1; i++) {
+			new_test_name[i] = test_name[i];
+			new_test_name[i + 1] = '\0';
+		}
+		count = 0;
+
+		char test_path[1024] = "C:/photo/test_data_from_demo/test_data/";
+		strcat_s(test_path, new_test_name);
+
+		for (int i = 0; i < 1024; i++) {
+			if (new_test_name[i] == 'b') {
+				new_test_name[i] = 't';
+				new_test_name[i + 1] = 'x';
+				new_test_name[i + 2] = 't';
+				new_test_name[i + 3] = '\0';
+				break;
+			}
+			else new_test_name[i] = new_test_name[i];
+		}
+		char result_path[1024] = "result_data/";
+		strcat_s(result_path, new_test_name);
+
+		if (fopen_s(&result_data, result_path, "w") != 0) {
+			cout << "missing 2" << endl;
+			return;
+		}
+		//画像の取り込み
+		cv::Mat ans_img_CF = cv::imread(test_path, 1);	//検出する画像
+		cv::Mat check_img = ans_img_CF.clone();
+
+		cv::Mat img;			//検出矩形処理を施す画像
+		cvtColor(ans_img_CF, img, CV_RGB2GRAY);
+
+		cout << file_num << ":" << new_test_name << endl;
+		file_num++;
+
+		//Detect_Placeオブジェクトの作成
+
+
+		FILE *CD_data;
+		char CD_path[1024] = "C:/photo/result_data_from_demo/2018_01_13_OOP/result_data/";
+		strcat_s(CD_path, new_test_name);
+		cout << CD_path << endl;
+		if (fopen_s(&CD_data, CD_path, "r") != 0) {
+			cout << "not found CD result" << endl;
+			return;
+		}
+
+		char tmp[5][1024];
+		//CD検出結果の取り込み
+		while (fgets(tmp[0], 256, CD_data) != NULL) {
+			fgets(tmp[1], 256, CD_data);
+			fgets(tmp[2], 256, CD_data);
+			fgets(tmp[3], 256, CD_data);
+			fgets(tmp[4], 256, CD_data);
+
+			Detect_Place detect;
+
+			detect.C_yudo = atof(tmp[0]);
+			detect.C_x = atoi(tmp[1]);
+			detect.C_y = atoi(tmp[2]);
+			detect.C_width = atoi(tmp[3]);
+			detect.C_height = atoi(tmp[4]);
+
+			//Fine Detectorによる検出
+			FD_max_ans = 0.0;
+			FD_max_XY = 0;
+			int x_max = 0;
+			int y_max = 0;
+			float ans_tmp = 0;
+
+			for (int y = -(float)detect.C_height/64.0; y <= (float)detect.C_height / 64.0; y += (float)detect.C_height / 64.0) {
+				for (int x = -(float)detect.C_width / 64.0; x <= (float)detect.C_width / 64.0; x += (float)detect.C_width / 64.0) {
+					if (detect.C_x + x < 0 || (detect.C_x + detect.C_width) + x > 640 || detect.C_y + y < 0 || (detect.C_y + detect.C_height) + y > 480) { continue; }
+				//	cout << detect.C_width << "," << detect.C_height << "," << x << "," << y << endl;
+					cv::Mat FD_img = img(cv::Rect(detect.C_x + x, detect.C_y + y, detect.C_width, detect.C_height));
+
+					cv::resize(FD_img, FD_img, cv::Size(), 128.0 / FD_img.cols, 128.0 / FD_img.rows);
+					{
+						FD_predict(24, 72, FD_img, FD_24x72);
+						FD_predict(24, 80, FD_img, FD_24x80);
+						FD_predict(24, 88, FD_img, FD_24x88);
+
+						//	FD_predict(32, 88, FD_img, FD_32x88);
+						FD_predict(32, 96, FD_img, FD_32x96);
+						FD_predict(32, 104, FD_img, FD_32x104);
+						FD_predict(32, 112, FD_img, FD_32x112);
+						//	FD_predict(32, 120, FD_img, FD_32x120);
+
+						FD_predict(40, 72, FD_img, FD_40x72);
+						//	FD_predict(40, 80, FD_img, FD_40x80);
+						//	FD_predict(40, 112, FD_img, FD_40x112);
+						FD_predict(40, 120, FD_img, FD_40x120);
+						FD_predict(40, 128, FD_img, FD_40x128);
+
+						FD_predict(48, 80, FD_img, FD_48x80);
+						FD_predict(48, 88, FD_img, FD_48x88);
+						//	FD_predict(48, 96, FD_img, FD_48x96);
+						//	FD_predict(48, 128, FD_img, FD_48x128);
+
+						FD_predict(56, 96, FD_img, FD_56x96);
+						FD_predict(56, 104, FD_img, FD_56x104);
+						//	FD_predict(56, 112, FD_img, FD_56x112);
+
+						FD_predict(64, 104, FD_img, FD_64x104);
+						FD_predict(64, 112, FD_img, FD_64x112);
+						FD_predict(64, 120, FD_img, FD_64x120);
+						//	FD_predict(64, 128, FD_img, FD_64x128);
+
+						FD_predict(72, 24, FD_img, FD_72x24);
+						FD_predict(72, 120, FD_img, FD_72x120);
+						FD_predict(72, 128, FD_img, FD_72x128);
+
+						//	FD_predict(80, 16, FD_img, FD_80x16);
+						FD_predict(80, 24, FD_img, FD_80x24);
+						FD_predict(80, 128, FD_img, FD_80x128);
+
+						FD_predict(88, 24, FD_img, FD_88x24);
+						FD_predict(88, 56, FD_img, FD_88x56);
+						//	FD_predict(88, 32, FD_img, FD_88x32);
+
+						//	FD_predict(96, 24, FD_img, FD_96x24);
+						FD_predict(96, 32, FD_img, FD_96x32);
+
+						//	FD_predict(104, 24, FD_img, FD_104x24);
+						FD_predict(104, 32, FD_img, FD_104x32);
+						//	FD_predict(104, 40, FD_img, FD_104x40);
+
+						//	FD_predict(112, 24, FD_img, FD_112x24);
+						FD_predict(112, 32, FD_img, FD_112x32);
+						FD_predict(112, 72, FD_img, FD_112x72);
+						//	FD_predict(112, 40, FD_img, FD_112x40);
+
+						//	FD_predict(120, 24, FD_img, FD_120x24);
+						//	FD_predict(120, 32, FD_img, FD_120x32);
+						FD_predict(120, 40, FD_img, FD_120x40);
+
+						//	FD_predict(128, 32, FD_img, FD_128x32);
+						FD_predict(128, 40, FD_img, FD_128x40);
+						//	FD_predict(128, 48, FD_img, FD_128x48);
+					}
+					if (ans_tmp < FD_max_ans) {
+						x_max = x;
+						y_max = y;
+						ans_tmp = FD_max_ans;
+					}
+
+				}
+			}
+			if (FD_max_ans != 0) {
+				int F_x1 = (detect.C_x + x_max + (float)detect.C_width / 2) - (((float)detect.C_width / 128) * (FD_max_XY / 2000));
+				int F_y1 = (detect.C_y + y_max + (float)detect.C_height / 2) - (((float)detect.C_height / 128) * (FD_max_XY % 1000 / 2));
+				int F_width = ((float)detect.C_width / 128)*(FD_max_XY / 1000);
+				int F_height = ((float)detect.C_height / 128)*(FD_max_XY % 1000);
+
+				detect.F_yudo = FD_max_ans;
+				detect.F_x = F_x1;
+				detect.F_y = F_y1;
+				detect.F_width = F_width;
+				detect.F_height = F_height;
+
+				fprintf_s(result_data, "%f", detect.C_yudo);
+				fprintf_s(result_data, "\n");
+				fprintf_s(result_data, "%d", detect.C_x+x_max);
+				fprintf_s(result_data, "\n");
+				fprintf_s(result_data, "%d", detect.C_y+y_max);
+				fprintf_s(result_data, "\n");
+				fprintf_s(result_data, "%d", detect.C_width);
+				fprintf_s(result_data, "\n");
+				fprintf_s(result_data, "%d", detect.C_height);
+				fprintf_s(result_data, "\n");
+
+				fprintf_s(result_data, "%f", detect.F_yudo);
+				fprintf_s(result_data, "\n");
+				fprintf_s(result_data, "%d", detect.F_x);
+				fprintf_s(result_data, "\n");
+				fprintf_s(result_data, "%d", detect.F_y);
+				fprintf_s(result_data, "\n");
+				fprintf_s(result_data, "%d", detect.F_width);
+				fprintf_s(result_data, "\n");
+				fprintf_s(result_data, "%d", detect.F_height);
+				fprintf_s(result_data, "\n");
+			}
+			//		cout << FD_max_ans << endl;
+			//		printf("%f, %d, %d, %d, %d\n", detect.F_yudo, detect.F_x, detect.F_y, detect.F_width, detect.F_height);
+
+			//	ans_img_CF = draw_rectangle(ans_img_CF, detect.C_x, detect.C_y, detect.C_width, detect.C_height, 255, 0, 0);
+			//	ans_img_CF = draw_rectangle(ans_img_CF, detect.F_x, detect.F_y, detect.F_width, detect.F_height, 0, 255, 0);
+			//	cv::imshow("", ans_img_CF);
+			//	cvWaitKey(0);
+
+		}
+		fclose(CD_data);
+		fclose(result_data);
+		//		cv::imshow("", ans_img_CF);
+		//		cvWaitKey(0);
+	}
+	count++;
+
+	fclose(test_data);
+}
+
+
+/*
 void detect_3() {
 	//変数宣言
 	//	int x, y;
@@ -1315,7 +1620,8 @@ void detect_3() {
 
 	fclose(test_data);
 }
-
+*/
+/*
 void ROC_data() {
 	
 	int file_num = 1;
@@ -1533,7 +1839,7 @@ void ROC_data() {
 	}
 		fclose(test_data);
 }
-
+*/
 int main(int argc, char** argv) {
 	
 	detect_3();
