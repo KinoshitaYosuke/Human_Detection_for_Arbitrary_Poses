@@ -24,7 +24,6 @@ double FD_max_ans = 0.0;
 int FD_max_XY = 0;
 
 struct svm_model* CD;
-
 struct svm_model* FD_24x72;
 struct svm_model* FD_24x80;
 struct svm_model* FD_24x88;
